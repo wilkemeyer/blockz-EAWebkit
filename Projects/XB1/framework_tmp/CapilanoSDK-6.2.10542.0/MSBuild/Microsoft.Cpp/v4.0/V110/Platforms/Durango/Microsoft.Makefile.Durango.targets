@@ -1,0 +1,51 @@
+<!--
+***********************************************************************************************
+Microsoft.Makefile.Durango.targets
+
+WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and have
+          created a backup copy.  Incorrect changes to this file will make it
+          impossible to load or build your projects from the command-line or the IDE.
+
+Copyright (C) Microsoft Corporation. All rights reserved.
+***********************************************************************************************
+-->
+
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <!-- *******************************************************************************************
+        Build settings for Durango Makefile project
+       ******************************************************************************************* -->
+
+  <Target Name="CopyAppxManifest" Condition="Exists(@(AppxManifest)) and '$(ConfigurationType)' == 'Makefile'">
+    <Copy SourceFiles="@(AppxManifest)" DestinationFiles="$(OutDir)\AppxManifest.xml"/>
+  </Target>
+
+  <Target Name="MakefileBuild" DependsOnTargets="PrepareForNMakeBuild;ResolveReferences;GetTargetPath" Returns="$(NMakeManagedOutput)">
+    <VCMessage Code="MSB8005" Type="Warning" Arguments="NMakeBuildCommandLine" Condition="'$(NMakeBuildCommandLine)'==''"/>
+    <Exec Command="$(NMakeBuildCommandLine)"  Condition="'$(NMakeBuildCommandLine)'!=''"/>
+  </Target>
+
+  <Target Name="Build" DependsOnTargets="MakefileBuild;CopyAppxManifest;GeneratePackageRuntimeMetadata;_DurangoDeploy">
+  </Target>
+  
+  <Target Name="CoreClean" DependsOnTargets="PrepareForNMakeBuild;CleanLayout">
+    <VCMessage Code="MSB8005" Type="Warning" Arguments="NMakeCleanCommandLine" Condition="'$(NMakeCleanCommandLine)'==''"/>
+    <Exec Command="$(NMakeCleanCommandLine)"  Condition="'$(NMakeCleanCommandLine)'!=''"/>
+  </Target>
+  <!--Default makefile rebuild has two paths, either call RebuildCommandline, or call Clean+Build commandline. Here they are split up into three targets so we can add dependencies for CleanLayout and _DurangoDeploy-->
+
+  <Target Name="MakeFileRebuild" DependsOnTargets="PrepareForNMakeBuild;Clean;_SetRebuildReferences;ResolveReferences;GetTargetPath" Returns="$(NMakeManagedOutput)" Condition="'$(NMakeReBuildCommandLine)'!=''">
+    <Exec Command="$(NMakeReBuildCommandLine)" Condition="'$(NMakeReBuildCommandLine)'!=''"/>
+  </Target>
+
+  <Target Name="CleanRebuild" DependsOnTargets="CoreClean" Condition="'$(NMakeReBuildCommandLine)'=='' and '$(NMakeCleanCommandLine)'!='' and '$(NMakeBuildCommandLine)'!=''">
+  </Target>
+
+  <Target Name="BuildRebuild" DependsOnTargets="MakefileBuild" Condition="'$(NMakeReBuildCommandLine)'=='' and '$(NMakeCleanCommandLine)'!='' and '$(NMakeBuildCommandLine)'!=''">
+  </Target>
+
+  <Target Name="Rebuild" DependsOnTargets="CleanRebuild;BuildRebuild;MakeFileRebuild;CopyAppxManifest;GeneratePackageRuntimeMetadata;_DurangoDeploy" Returns="$(NMakeManagedOutput)">
+    <VCMessage Code="MSB8005" Type="Warning" Arguments="NMakeReBuildCommandLine" Condition="'$(NMakeReBuildCommandLine)'=='' and '$(NMakeCleanCommandLine)'=='' and '$(NMakeBuildCommandLine)'==''"/>
+  </Target>
+  
+</Project>

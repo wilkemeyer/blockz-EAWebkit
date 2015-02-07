@@ -1,0 +1,39 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+	<UsingTask AssemblyFile="SubsetFontTask.dll" TaskName="Microsoft.Expression.SubsetFontTask.SubsetFontsSilverlight" />
+	<UsingTask AssemblyFile="SubsetFontTask.dll" TaskName="Microsoft.Expression.SubsetFontTask.CleanSubsetFonts" />
+
+	<ItemGroup Condition="'$(BuildingInsideVisualStudio)'=='true'">
+		<AvailableItemName Include="BlendEmbeddedFont"/>
+	</ItemGroup>
+
+	<Target Name='SubsetFontsSilverlight' DependsOnTargets="$(SubsetFontsDependsOn)" Condition="'@(BlendEmbeddedFont)' != ''">
+		<SubsetFontsSilverlight 
+			Fonts="@(BlendEmbeddedFont)" XamlFiles="@(Page)" Resources="@(Resources)" 
+			IntermediateFilesDirectory="$(IntermediateOutputPath)"
+			>
+			<Output TaskParameter="SubsettedFonts" ItemName="Resource"/>
+		</SubsetFontsSilverlight>
+	</Target>
+
+	<Target Name='CleanSubsetFonts' DependsOnTargets="$(CleanSubsetFontsDependsOn)" Condition="'@(BlendEmbeddedFont)' != ''">
+		<CleanSubsetFonts 
+			Fonts="@(BlendEmbeddedFont)"
+			IntermediateFilesDirectory="$(IntermediateOutputPath)"
+			/>
+	</Target>
+
+	<PropertyGroup>
+		<PrepareResourcesDependsOn>
+			SubsetFontsSilverlight;
+			$(PrepareResourcesDependsOn);
+		</PrepareResourcesDependsOn>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<CleanDependsOn>
+			$(CleanDependsOn);
+			CleanSubsetFonts;
+		</CleanDependsOn>
+	</PropertyGroup>
+
+</Project>

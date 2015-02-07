@@ -1,0 +1,41 @@
+﻿<!--
+***********************************************************************************************
+Microsoft.Cpp.Durango.props
+
+WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and have
+          created a backup copy.  Incorrect changes to this file will make it
+          impossible to load or build your projects from the command-line or the IDE.
+
+Copyright (C) Microsoft Corporation. All rights reserved.
+***********************************************************************************************
+-->
+
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Platform.props"/>
+
+    <PropertyGroup>
+      <Console_SdkRoot>$(DurangoXdkInstallPath)</Console_SdkRoot>
+      <Console_SdkWindowsMetadataPath>$(TargetPlatformWinMDLocation)</Console_SdkWindowsMetadataPath>
+      <MakePriExeFullPath>$(DurangoXdkInstallPath)bin\makepri.exe</MakePriExeFullPath>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(ApplicationEnvironment)'=='title'">
+      <!-- Title project header and library paths. -->
+      <Console_SdkIncludeRoot>$(DurangoKitPath)include\um;$(DurangoKitPath)include\shared;$(DurangoKitPath)include\winrt;$(DurangoKitPath)crt\include;$(DurangoKitPath)crt\platform\amd64;$(DurangoKitPath)</Console_SdkIncludeRoot>
+      <Console_SdkLibPath>$(DurangoKitPath)lib\amd64;$(DurangoKitPath)crt\lib\amd64;$(DurangoKitPath)crt\platform\amd64</Console_SdkLibPath>
+      <Console_SdkPackagesRoot>$(Console_SdkWindowsMetadataPath)</Console_SdkPackagesRoot>
+
+      <CLToolExe>$(DurangoKitPath)vc\bin\amd64\cl.exe</CLToolExe>
+      <LinkToolExe>$(DurangoKitPath)vc\bin\amd64\link.exe</LinkToolExe>
+      <LibToolExe>$(DurangoKitPath)vc\bin\amd64\lib.exe</LibToolExe>
+      <FXCToolPath>$(DurangoKitPath)fxc\amd64\</FXCToolPath>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(ApplicationEnvironment)'!='title'">
+      <!-- Non-Title project header and library paths. -->
+      <Console_SdkIncludeRoot>$(DurangoKitPath)include\um;$(DurangoKitPath)include\shared;$(DurangoKitPath)include\winrt;$(VCInstallDir)include;$(DurangoKitPath)</Console_SdkIncludeRoot>
+      <Console_SdkLibPath>$(DurangoKitPath)lib\amd64;$(VCInstallDir)lib\amd64</Console_SdkLibPath>
+      <Console_SdkPackagesRoot>$(VCInstallDir)vcpackages</Console_SdkPackagesRoot>
+    </PropertyGroup>
+
+</Project>

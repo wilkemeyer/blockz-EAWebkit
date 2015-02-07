@@ -1,0 +1,242 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="pc-vc-dev-debug|Win32">
+      <Configuration>pc-vc-dev-debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="pc-vc-dev-opt|Win32">
+      <Configuration>pc-vc-dev-opt</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{4A3E9D7F-6F2E-E7F5-8CCA-F346214AD919}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <ProjectName>cairo</ProjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'pc-vc-dev-debug|Win32' " Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v100</PlatformToolset>
+    <UseDebugLibraries>True</UseDebugLibraries>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'pc-vc-dev-opt|Win32' " Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v100</PlatformToolset>
+    <UseDebugLibraries>False</UseDebugLibraries>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\masm.props" />
+  </ImportGroup>
+  <ImportGroup Condition=" '$(Configuration)|$(Platform)' == 'pc-vc-dev-debug|Win32' " Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <ItemDefinitionGroup Condition=" '$(Configuration)|$(Platform)' == 'pc-vc-dev-debug|Win32' ">
+    <Midl />
+    <ClCompile>
+      <AdditionalIncludeDirectories>"..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\include\cairo";"..\..\..\..\EAWebKitSupportPackages\zlibEAWebKit\local-1.2.5-7-01\install";"..\..\..\..\EAWebKitSupportPackages\zlibEAWebKit\local-1.2.5-7-01\include";"..\..\..\..\EAWebKitSupportPackages\libpngEAWebKit\local-1.01.00-01\include\libpng";"..\..\..\..\EAWebKitSupportPackages\pixman\local\include";"$(VSInstallDir)\VC\ATLMFC\INCLUDE";"$(VSInstallDir)\VC\INCLUDE";"$(WindowsSDKDir)\include";"$(VSInstallDir)\SDK\v2.0\include";"$(VSInstallDir)\INCLUDE"</AdditionalIncludeDirectories>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <BufferSecurityCheck>FALSE</BufferSecurityCheck>
+      <CompileAs>Default</CompileAs>
+      <CompileAsWinRT>false</CompileAsWinRT>
+      <CompileOnly>TRUE</CompileOnly>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <DisableSpecificWarnings>4701; 4706; 4267; 4242; 4244; 4127; 4702; 4204; 4132; 4146; 4245; 4986; 4987; 4574; 4365; 4061; 4062; 4100; 4324; 4619; 4514; 4640; 4668; 4710; 4711; 4738; 4820; 4826; 4819; 4826; 4692; 4746; 4350; </DisableSpecificWarnings>
+      <ExceptionHandling>FALSE</ExceptionHandling>
+      <FloatingPointModel>Precise</FloatingPointModel>
+      <ForceConformanceInForLoopScope>TRUE</ForceConformanceInForLoopScope>
+      <MinimalRebuild>FALSE</MinimalRebuild>
+      <MultiProcessorCompilation>TRUE</MultiProcessorCompilation>
+      <Optimization>Disabled</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PreprocessorDefinitions>_CHAR16T;_CRT_SECURE_NO_WARNINGS;_DEBUG;_HAS_CPP0X=0;_HAS_EXCEPTIONS=0;_SECURE_SCL=1;_WIN32_IE=0x0502;_WIN32_WINNT=0x0502;_WINDOWS;CAIRO_DISABLE_TMPFILE;CAIRO_NO_MUTEX=1;CAIRO_WIN32_STATIC_BUILD;DISABLE_SOME_FLOATING_POINT;EA_DEBUG;WIN32;WINVER=0x0502</PreprocessorDefinitions>
+      <ProcessorNumber>8</ProcessorNumber>
+      <ProgramDataBaseFileName>pc-vc-dev-debug\lib\cairo.pdb</ProgramDataBaseFileName>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <RuntimeTypeInfo>FALSE</RuntimeTypeInfo>
+      <SuppressStartupBanner>TRUE</SuppressStartupBanner>
+      <TreatWarningAsError>FALSE</TreatWarningAsError>
+      <WarningLevel>EnableAllWarnings</WarningLevel>
+    </ClCompile>
+    <Lib>
+      <OutputFile>pc-vc-dev-debug\lib\cairo.lib</OutputFile>
+      <SuppressStartupBanner>TRUE</SuppressStartupBanner>
+    </Lib>
+    <PreBuildEvent>
+      <Command>@if not exist "pc-vc-dev-debug\lib" mkdir "pc-vc-dev-debug\lib" &amp; SET ERRORLEVEL=0
+@if not exist "pc-vc-dev-debug\build\cairo" mkdir "pc-vc-dev-debug\build\cairo" &amp; SET ERRORLEVEL=0</Command>
+    </PreBuildEvent>
+  </ItemDefinitionGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'pc-vc-dev-debug|Win32' ">
+    <OutDir>pc-vc-dev-debug\lib\</OutDir>
+    <IntDir>pc-vc-dev-debug\build\cairo\vstmp\</IntDir>
+    <TargetName>cairo</TargetName>
+    <TargetExt>.lib</TargetExt>
+    <ExecutablePath>$(ExecutablePath)</ExecutablePath>
+    <IncludePath>$(IncludePath)</IncludePath>
+    <ReferencePath>$(ReferencePath)</ReferencePath>
+    <LibraryPath>$(LibraryPath)</LibraryPath>
+    <SourcePath>$(SourcePath)</SourcePath>
+    <ExcludePath>$(ExcludePath)</ExcludePath>
+  </PropertyGroup>
+  <ImportGroup Condition=" '$(Configuration)|$(Platform)' == 'pc-vc-dev-opt|Win32' " Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <ItemDefinitionGroup Condition=" '$(Configuration)|$(Platform)' == 'pc-vc-dev-opt|Win32' ">
+    <Midl />
+    <ClCompile>
+      <AdditionalIncludeDirectories>"..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\include\cairo";"..\..\..\..\EAWebKitSupportPackages\zlibEAWebKit\local-1.2.5-7-01\install";"..\..\..\..\EAWebKitSupportPackages\zlibEAWebKit\local-1.2.5-7-01\include";"..\..\..\..\EAWebKitSupportPackages\libpngEAWebKit\local-1.01.00-01\include\libpng";"..\..\..\..\EAWebKitSupportPackages\pixman\local\include";"$(VSInstallDir)\VC\ATLMFC\INCLUDE";"$(VSInstallDir)\VC\INCLUDE";"$(WindowsSDKDir)\include";"$(VSInstallDir)\SDK\v2.0\include";"$(VSInstallDir)\INCLUDE"</AdditionalIncludeDirectories>
+      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+      <BufferSecurityCheck>FALSE</BufferSecurityCheck>
+      <CompileAs>Default</CompileAs>
+      <CompileAsWinRT>false</CompileAsWinRT>
+      <CompileOnly>TRUE</CompileOnly>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <DisableSpecificWarnings>4701; 4706; 4267; 4242; 4244; 4127; 4702; 4204; 4132; 4146; 4245; 4986; 4987; 4574; 4365; 4061; 4062; 4100; 4324; 4619; 4514; 4640; 4668; 4710; 4711; 4738; 4820; 4826; 4819; 4826; 4692; 4746; 4350; </DisableSpecificWarnings>
+      <ExceptionHandling>FALSE</ExceptionHandling>
+      <FloatingPointModel>Precise</FloatingPointModel>
+      <ForceConformanceInForLoopScope>TRUE</ForceConformanceInForLoopScope>
+      <MinimalRebuild>FALSE</MinimalRebuild>
+      <MultiProcessorCompilation>TRUE</MultiProcessorCompilation>
+      <Optimization>MaxSpeed</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PreprocessorDefinitions>_CHAR16T;_CRT_SECURE_NO_WARNINGS;_HAS_CPP0X=0;_HAS_EXCEPTIONS=0;_SECURE_SCL=0;_WIN32_IE=0x0502;_WIN32_WINNT=0x0502;_WINDOWS;CAIRO_DISABLE_TMPFILE;CAIRO_NO_MUTEX=1;CAIRO_WIN32_STATIC_BUILD;DISABLE_SOME_FLOATING_POINT;NDEBUG;WIN32;WINVER=0x0502</PreprocessorDefinitions>
+      <ProcessorNumber>8</ProcessorNumber>
+      <ProgramDataBaseFileName>pc-vc-dev-opt\lib\cairo.pdb</ProgramDataBaseFileName>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <RuntimeTypeInfo>FALSE</RuntimeTypeInfo>
+      <SuppressStartupBanner>TRUE</SuppressStartupBanner>
+      <TreatWarningAsError>FALSE</TreatWarningAsError>
+      <WarningLevel>EnableAllWarnings</WarningLevel>
+    </ClCompile>
+    <Lib>
+      <OutputFile>pc-vc-dev-opt\lib\cairo.lib</OutputFile>
+      <SuppressStartupBanner>TRUE</SuppressStartupBanner>
+    </Lib>
+    <PreBuildEvent>
+      <Command>@if not exist "pc-vc-dev-opt\lib" mkdir "pc-vc-dev-opt\lib" &amp; SET ERRORLEVEL=0
+@if not exist "pc-vc-dev-opt\build\cairo" mkdir "pc-vc-dev-opt\build\cairo" &amp; SET ERRORLEVEL=0</Command>
+    </PreBuildEvent>
+  </ItemDefinitionGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'pc-vc-dev-opt|Win32' ">
+    <OutDir>pc-vc-dev-opt\lib\</OutDir>
+    <IntDir>pc-vc-dev-opt\build\cairo\vstmp\</IntDir>
+    <TargetName>cairo</TargetName>
+    <TargetExt>.lib</TargetExt>
+    <ExecutablePath>$(ExecutablePath)</ExecutablePath>
+    <IncludePath>$(IncludePath)</IncludePath>
+    <ReferencePath>$(ReferencePath)</ReferencePath>
+    <LibraryPath>$(LibraryPath)</LibraryPath>
+    <SourcePath>$(SourcePath)</SourcePath>
+    <ExcludePath>$(ExcludePath)</ExcludePath>
+  </PropertyGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\include\cairo-version.h" />
+    <ClInclude Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\include\cairo\cairo.h" />
+    <ClInclude Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\include\cairo\cairo-deprecated.h" />
+    <ClInclude Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\include\cairo\cairo-features.h" />
+    <ClInclude Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\include\cairo\cairo-malloc.h" />
+    <ClInclude Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\include\cairo\cairo-version.h" />
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo.c" />
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-analysis-surface.c" />
+    <ClInclude Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-analysis-surface-private.h" />
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-arc.c" />
+    <ClInclude Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-arc-private.h" />
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-array.c" />
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-atomic.c" />
+    <ClInclude Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-atomic-private.h" />
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-base85-stream.c" />
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-bentley-ottmann.c" />
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-cache.c" />
+    <ClInclude Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-cache-private.h" />
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-clip.c" />
+    <ClInclude Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-clip-private.h" />
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-color.c" />
+    <ClInclude Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-compiler-private.h" />
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-debug.c" />
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-fixed.c" />
+    <ClInclude Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-fixed-private.h" />
+    <ClInclude Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-fixed-type-private.h" />
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-font-face.c" />
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-font-face-twin.c" />
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-font-face-twin-data.c" />
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-font-options.c" />
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-freelist.c" />
+    <ClInclude Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-freelist-private.h" />
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-gstate.c" />
+    <ClInclude Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-gstate-private.h" />
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-hash.c" />
+    <ClInclude Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-hash-private.h" />
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-hull.c" />
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-image-surface.c" />
+    <ClInclude Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairoint.h" />
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-lzw.c" />
+    <ClInclude Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-malloc-private.h" />
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-matrix.c" />
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-meta-surface.c" />
+    <ClInclude Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-meta-surface-private.h" />
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-misc.c" />
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-mutex.c" />
+    <ClInclude Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-mutex-impl-private.h" />
+    <ClInclude Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-mutex-list-private.h" />
+    <ClInclude Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-mutex-private.h" />
+    <ClInclude Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-mutex-type-private.h" />
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-output-stream.c" />
+    <ClInclude Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-output-stream-private.h" />
+    <ClInclude Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-paginated-private.h" />
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-paginated-surface.c" />
+    <ClInclude Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-paginated-surface-private.h" />
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-path.c" />
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-path-bounds.c" />
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-path-fill.c" />
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-path-fixed.c" />
+    <ClInclude Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-path-fixed-private.h" />
+    <ClInclude Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-path-private.h" />
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-path-stroke.c" />
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-pattern.c" />
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-pen.c" />
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-png.c" />
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-polygon.c" />
+    <ClInclude Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-private.h" />
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-rectangle.c" />
+    <ClInclude Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-reference-count-private.h" />
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-region.c" />
+    <ClInclude Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-region-private.h" />
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-scaled-font.c" />
+    <ClInclude Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-scaled-font-private.h" />
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-skiplist.c" />
+    <ClInclude Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-skiplist-private.h" />
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-slope.c" />
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-spline.c" />
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-stroke-style.c" />
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-surface.c" />
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-surface-fallback.c" />
+    <ClInclude Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-surface-fallback-private.h" />
+    <ClInclude Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-surface-private.h" />
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-system.c" />
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-traps.c" />
+    <ClInclude Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-types-private.h" />
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-unicode.c" />
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-user-font.c" />
+    <ClInclude Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-user-font-private.h" />
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-version.c" />
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-wideint.c" />
+    <ClInclude Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-wideint-private.h" />
+    <ClInclude Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-wideint-type-private.h" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\masm.targets" />
+  </ImportGroup>
+  <ProjectExtensions>
+    <VisualStudio>
+      <UserProperties platform_pc-vc-dev-debug_Win32="vc" vc-compiler="$(VSInstallDir)\VC\BIN\cl.exe" vc-compiler_clang="" vc-asm="$(VSInstallDir)\VC\BIN\ml.exe" vc-librarian="$(VSInstallDir)\VC\BIN\lib.exe" platform_pc-vc-dev-opt_Win32="vc" build.env.PATH="$(VSInstallDir)\Common7\IDE"></UserProperties>
+    </VisualStudio>
+  </ProjectExtensions>
+</Project>

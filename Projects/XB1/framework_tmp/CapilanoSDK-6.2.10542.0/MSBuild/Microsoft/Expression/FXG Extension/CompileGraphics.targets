@@ -1,0 +1,72 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+	<UsingTask AssemblyFile="Microsoft.Expression.Fxg.Build.Task.dll" TaskName="Microsoft.Expression.Importers.Fxg.Build.CompileGraphics" />
+	<UsingTask AssemblyFile="Microsoft.Expression.Fxg.Build.Task.dll" TaskName="Microsoft.Expression.Importers.Fxg.Build.CleanCompiledGraphics" />
+
+	<ItemGroup Condition="'$(BuildingInsideVisualStudio)'=='true'">
+		<AvailableItemName Include="CompiledGraphic"/>
+	</ItemGroup>
+
+	<Target 
+		Name='CompileGraphics' 
+		DependsOnTargets="$(CompileFxgDependsOn)" 
+		Condition="'@(CompiledGraphic)' != ''">
+		<CompileGraphics
+			DefaultNamespace="$(RootNamespace)"
+			Language="$(Language)"
+			SourceFiles="@(CompiledGraphic)"
+			AssemblyName="$(AssemblyName)"
+			ResourceItems="@(Resource)"
+			IntermediateFilesDirectory="$(IntermediateOutputPath)"
+			TargetFrameworkIdentifier="$(TargetFrameworkIdentifier)"
+			TargetFrameworkVersion="$(TargetFrameworkVersion)"
+			TargetFrameworkProfile="$(TargetFrameworkProfile)">
+			<Output TaskParameter="GeneratedClasses" ItemName="FxgIncludeCompile"/>
+			<Output TaskParameter="GeneratedXaml" ItemName="FxgIncludeResource"/>
+			<Output TaskParameter="RemovedClasses" ItemName="FxgRemoveCompile" />
+			<Output TaskParameter="RemovedXaml" ItemName="FxgRemoveResource" />
+		</CompileGraphics>
+
+		<ItemGroup>
+			<Compile Include="@(FxgIncludeCompile)" />
+			<Resource Include="@(FxgIncludeResource)" />
+			<Compile Remove="@(FxgRemoveCompile)" />
+			<Resource Remove="@(FxgRemoveResource)" />
+		</ItemGroup>
+		
+		<OnError ExecuteTargets="CleanCompiledGraphics" />
+
+	</Target>
+
+
+	<Target Name='CleanCompiledGraphics' DependsOnTargets="$(CleanCompiledGraphicsDependsOn)">
+		<CleanCompiledGraphics SourceFiles="@(CompiledGraphic)" IntermediateFilesDirectory="$(IntermediateOutputPath)"/>
+	</Target>
+
+	<PropertyGroup>
+		<CoreCompileDependsOn>
+			CompileGraphics;
+			$(CoreCompileDependsOn)
+		</CoreCompileDependsOn>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<CompileXamlDependsOn>
+			CompileGraphics;
+			$(CompileXamlDependsOn)
+		</CompileXamlDependsOn>
+	</PropertyGroup>
+	
+	<PropertyGroup>
+		<PrepareResourcesDependsOn>
+			CompileGraphics;
+			$(PrepareResourcesDependsOn);
+		</PrepareResourcesDependsOn>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<CleanDependsOn>
+			$(CleanDependsOn);
+			CleanCompiledGraphics;
+		</CleanDependsOn>
+	</PropertyGroup>
+</Project>

@@ -1,0 +1,456 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+
+<!--
+***********************************************************************************************
+Microsoft.VisualStudio.SharePoint.targets
+
+WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and have
+          created a backup copy.  Incorrect changes to this file will make it
+          impossible to load or build your projects from the command-line or the IDE.
+
+This file defines the steps in the standard build process specific for Visual Studio Tools for 
+SharePoint projects.
+
+Copyright (C) Microsoft Corporation. All rights reserved.
+***********************************************************************************************
+-->
+
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <PropertyGroup>
+    <CustomBeforeSharePointTargets Condition="'$(CustomBeforeSharePointTargets)'==''">$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v10.0\SharePointTools\Custom.Before.Microsoft.VisualStudio.SharePoint.targets</CustomBeforeSharePointTargets>
+    <CustomAfterSharePointTargets Condition="'$(CustomAfterSharePointTargets)'==''">$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v10.0\SharePointTools\Custom.After.Microsoft.VisualStudio.SharePoint.targets</CustomAfterSharePointTargets>
+  </PropertyGroup>
+
+  <Import Project="$(CustomBeforeSharePointTargets)" Condition="Exists('$(CustomBeforeSharePointTargets)')"/>
+
+  <!-- 
+  Save CoreCompileDependsOn that Workflow targets override.
+  -->
+  <PropertyGroup>
+    <SaveCoreCompileDependsOn>$(CoreCompileDependsOn)</SaveCoreCompileDependsOn>
+  </PropertyGroup>
+
+  <!-- 
+  Import the Workflow target files 
+  -->
+  <Import Condition="'$(Language)' == 'C#'" Project="$(MSBuildToolsPath)\Workflow.Targets" />
+  <Import Condition="'$(Language)' == 'VB'" Project="$(MSBuildToolsPath)\Workflow.VisualBasic.targets" />
+
+  <!-- 
+  Restore the CoreCompileDependsOn and add our target that conditionally calls the Workflow target.
+  -->
+  <PropertyGroup> 
+    <CoreCompileDependsOn>
+      $(SaveCoreCompileDependsOn);
+      ConditionalWorkflowCompilation
+    </CoreCompileDependsOn>
+  </PropertyGroup>
+
+  <UsingTask AssemblyFile="Microsoft.VisualStudio.SharePoint.Tasks.dll" TaskName="CreateSharePointProjectService" />
+  <UsingTask AssemblyFile="Microsoft.VisualStudio.SharePoint.Tasks.dll" TaskName="EnumerateFiles" />
+  <UsingTask AssemblyFile="Microsoft.VisualStudio.SharePoint.Tasks.dll" TaskName="EnumerateFeature" />
+  <UsingTask AssemblyFile="Microsoft.VisualStudio.SharePoint.Tasks.dll" TaskName="EnumeratePackage" />
+  <UsingTask AssemblyFile="Microsoft.VisualStudio.SharePoint.Tasks.dll" TaskName="EnumerateProjectItem" />
+  <UsingTask AssemblyFile="Microsoft.VisualStudio.SharePoint.Tasks.dll" TaskName="LayoutFiles" />
+  <UsingTask AssemblyFile="Microsoft.VisualStudio.SharePoint.Tasks.dll" TaskName="PackageFiles" />
+  <UsingTask AssemblyFile="Microsoft.VisualStudio.SharePoint.Tasks.dll" TaskName="ResolveProjectMember" />
+  <UsingTask AssemblyFile="Microsoft.VisualStudio.SharePoint.Tasks.dll" TaskName="SetPackagingProperties" />
+  <UsingTask AssemblyFile="Microsoft.VisualStudio.SharePoint.Tasks.dll" TaskName="ValidatePackage" />
+  
+  <PropertyGroup>
+    <!-- 
+    Force the C# 3.0 language 
+    -->
+    <LangVersion Condition="'$(LangVersion)' == '' and '$(Language)' == 'C#'">3</LangVersion>
+
+    <!-- 
+    Force the VB 9.0 language 
+    -->
+    <LangVersion Condition="'$(LangVersion)' == '' and '$(Language)' == 'VB'">9</LangVersion>
+
+    <!-- 
+    
+    Team Build sets a global OutDir property which we need to propagate to project 
+    references when creating the project service. MSBuild does not have a method
+    of determining which properties are global, so we test whether OutDir is equal
+    to OutputPath (which is normally the case), and assume a difference means that
+    Team Build is redirecting the output of all projects.
+    
+    -->
+    <TeamBuildOutDir Condition="'$(OutDir)' != '$(OutputPath)'">$(OutDir)</TeamBuildOutDir>
+
+    <LayoutPath Condition="'$(LayoutPath)' == ''">pkg\$(Configuration)</LayoutPath>
+    <LayoutPath Condition="'$(LayoutPath)' != '' and !HasTrailingSlash('$(LayoutPath)')">$(LayoutPath)\</LayoutPath>
+
+    <PackageIntermediatePath Condition="'$(PackageIntermediatePath)' == ''">pkgobj\$(Configuration)</PackageIntermediatePath>
+    <PackageIntermediatePath Condition="'$(PackageIntermediatePath)' != '' and !HasTrailingSlash('$(PackageIntermediatePath)')">$(PackageIntermediatePath)\</PackageIntermediatePath>
+
+    <BasePackagePath Condition="'$(BasePackagePath)' == ''">$(OutDir)</BasePackagePath>
+    <BasePackagePath Condition="'$(BasePackagePath)' != '' and !HasTrailingSlash('$(BasePackagePath)')">$(BasePackagePath)\</BasePackagePath>
+
+    <PackageExtension Condition="'$(PackageExtension)' == ''">wsp</PackageExtension>
+
+    <AssemblyDeploymentTarget Condition="'$(AssemblyDeploymentTarget)' == ''">GlobalAssemblyCache</AssemblyDeploymentTarget>
+    <PackageWithValidation Condition="'$(PackageWithValidation)' == ''">true</PackageWithValidation>
+
+    <!-- The list of previously generated packages.  Created by PerformPackage and used by CleanPackage. -->
+    
+    <PackageFileList Condition="'$(PackageFileList)'==''">$(MSBuildProjectFile).PackageFileList.txt</PackageFileList>
+
+    <BuildDependsOn>
+      $(BuildDependsOn);
+      ConfigurePackaging;
+      ConditionalPackage
+    </BuildDependsOn>
+
+    <!--
+       Sequence of targets which generate the set of referenced projects needed by the CreateSharePointProjectService target.    
+    -->
+    <CreateSharePointProjectServiceDependsOn>
+      EnumeratePackages;
+      EnumeratePackageItems;
+      ResolveFeatures;
+      EnumerateFeatureItems;
+      ResolveProjectItems;
+      EnumerateProjectItems;
+      EnumerateSharePointProjectReferences;
+      BuildSharePointProjectReferences
+    </CreateSharePointProjectServiceDependsOn>
+
+    <CreatePackageDependsOn>
+      CreateSharePointProjectService;
+      ConditionalPackageValidation;
+      CleanPackage;
+      PerformEnumeration;
+      BeforeLayout;
+      PerformLayout;
+      AfterLayout;
+      PerformPackage;
+    </CreatePackageDependsOn>
+
+    <PackageDependsOn>
+      Build;
+      CreatePackage
+    </PackageDependsOn>
+
+    <ValidatePackageDependsOn>
+      Build;
+      CreateSharePointProjectService;
+      PerformPackageValidation;
+    </ValidatePackageDependsOn>
+
+    <TokenReplacementFileExtensions>$(TokenReplacementFileExtensions);xml;aspx;ascx;webpart;dwp</TokenReplacementFileExtensions>
+  </PropertyGroup>
+
+  <!--
+  See if there is a reference to the workflow assembly or we have a XOML Content file.
+  If there is no reference or XOML files then default to skipping the Workflow compilation.
+  -->
+  <Target Name="ConditionalWorkflowCompilation">
+    <PropertyGroup>
+      <HasWorkflowReference Condition="'$(HasWorkflowReference)' == ''
+        and '%(Reference.Identity)' == 'System.Workflow.ComponentModel'"
+      >True</HasWorkflowReference>
+
+      <HasXomlFiles Condition="'$(HasXomlFiles)' == ''
+        and '%(Content.Extension)' == '.xoml'"
+      >True</HasXomlFiles>
+
+      <SharePointSkipWorkflowCompilation Condition="$(SharePointSkipWorkflowCompilation) == ''
+        and '$(HasWorkflowReference)' != 'True'
+        and '$(HasXomlFiles)' != 'True'"
+      >True</SharePointSkipWorkflowCompilation>
+    </PropertyGroup>
+
+    <!--
+    Call the Worflow compilation target if we did not decide to skip it.
+    -->
+    <CallTarget Condition="'$(SharePointSkipWorkflowCompilation)' != 'True'" Targets="WorkflowCompilation" />
+  </Target>
+
+  <!--
+    Generates the set of package definition files in the current project.  
+    
+    Inputs:   @(None)
+    Outputs:  @(Package)
+  -->
+  <Target Name="EnumeratePackages">
+    <ItemGroup>
+      <!-- Package definitions are None items with PackageId metadata. -->
+      <Package Include="@(None)" Condition="%(None.PackageId) != ''" />
+    </ItemGroup>
+  </Target>
+
+  <!--
+    Enumerates each package definition file and generates its set of project item and feature references.
+    
+    Inputs:   @(Package)
+    Outputs:  @(FeatureReference)
+              @(ProjectItemReference)    
+              @(ProjectOutputReference)
+  -->
+  <Target Name="EnumeratePackageItems" Condition="'@(Package)' != ''">
+    <EnumeratePackage Package="%(Package.Identity)"
+                      ProjectFile="$(MSBuildProjectFile)">
+      <Output ItemName="FeatureReference" TaskParameter="FeatureReferences" />
+      <Output ItemName="ProjectItemReference" TaskParameter="ProjectItemReferences" />
+      <Output ItemName="ProjectOutputReference" TaskParameter="ProjectOutputReferences" />
+    </EnumeratePackage>
+  </Target>
+
+  <!--
+    Resolves each feature reference to its corresponding feature definition file.
+    
+    Inputs:   @(FeatureReference)
+    Outputs:  @(Feature)
+  -->
+  <Target Name="ResolveFeatures" Condition="@(FeatureReference) != ''">
+
+    <MSBuild Projects="%(FeatureReference.Identity)" Targets="GetFeatures" RebaseOutputs="true">
+      <Output ItemName="AvailableFeature" TaskParameter="TargetOutputs"/>
+    </MSBuild>
+
+    <ResolveProjectMember AvailableProjectMembers="@(AvailableFeature)"
+                          ProjectMemberId="%(FeatureReference.FeatureId)"
+                          ProjectMemberIdMetadataName="FeatureId">
+      <Output ItemName="Feature" TaskParameter="ResolvedProjectMember" />
+    </ResolveProjectMember>
+
+  </Target>
+
+  <!--
+    Enumerates each feature definition file and generates its set of project item references and activation dependencies.
+    
+    Inputs:   @(Feature)
+    Outputs:  @(ProjectItemReference)
+              @(ReferencedFeatureActivationDependency)
+  -->
+  <Target Name="EnumerateFeatureItems" Condition="'@(Feature)' != ''">
+    <EnumerateFeature Feature="%(Feature.Identity)"
+                      ProjectFile="%(Feature.ProjectPath)">
+      <Output ItemName="ProjectItemReference" TaskParameter="ProjectItemReferences" />
+      <Output ItemName="ReferencedFeatureActivationDependency" TaskParameter="ReferencedFeatureActivationDependencies" />
+    </EnumerateFeature>
+  </Target>
+
+  <!--
+    Resolves each project item reference to its corresponding project item definition file.
+    
+    Inputs:   @(ProjectItemReference)
+    Outputs:  @(ProjectItem)
+  -->
+  <Target Name="ResolveProjectItems" Condition="@(ProjectItemReference) != ''">
+
+    <MSBuild Projects="%(ProjectItemReference.Identity)" Targets="GetProjectItems" RebaseOutputs="true">
+      <Output ItemName="AvailableProjectItem" TaskParameter="TargetOutputs"/>
+    </MSBuild>
+
+    <ResolveProjectMember AvailableProjectMembers="@(AvailableProjectItem)"
+                      ProjectMemberId="%(ProjectItemReference.SharePointProjectItemId)"
+                      ProjectMemberIdMetadataName="SharePointProjectItemId">
+      <Output ItemName="ProjectItem" TaskParameter="ResolvedProjectMember" />
+    </ResolveProjectMember>
+
+  </Target>
+
+  <!--
+    Enumerates each project item definition file and generates its set of project output references.
+    
+    Inputs:   @(ProjectItem)
+    Outputs:  @(ProjectOutputReference)
+  -->
+  <Target Name="EnumerateProjectItems" Condition="'@(ProjectItem)' != ''">
+    <EnumerateProjectItem ProjectItem="%(ProjectItem.Identity)"
+                          ProjectFile="%(ProjectItem.ProjectPath)">
+      <Output ItemName="ProjectOutputReference" TaskParameter="ProjectOutputReferences" />
+    </EnumerateProjectItem>
+  </Target>
+
+  <!--
+    Generates the set of projects referenced by the various SharePoint definition files.
+    
+    Inputs:   @(FeatureReference)
+              @(ProjectItemReference)
+              @(ProjectOutputReference)
+              @(ReferencedFeatureActivationDependency)              
+    Outputs:  @(SharePointProjectReference)
+  -->
+  <Target Name="EnumerateSharePointProjectReferences">
+    <ItemGroup>
+      <!-- Create a union of all generated project references, excluding references to the current project. -->
+      <UnfilteredSharePointProjectReference Include="@(ProjectItemReference);@(FeatureReference);@(ProjectOutputReference);@(ReferencedFeatureActivationDependency)" Condition="%(FullPath) != '$(MSBuildProjectFullPath)'" />
+      <!-- 
+        Create a union of all generated project references that require building before packaging (i.e. are a true dependency), excluding references to the current project. 
+        
+        Note that we exclude feature activation dependencies because they do not require the parent project to be built.
+      -->
+      <UnfilteredSharePointProjectDependency Include="@(ProjectItemReference);@(FeatureReference);@(ProjectOutputReference)" Condition="%(FullPath) != '$(MSBuildProjectFullPath)'" />
+    </ItemGroup>
+    <!-- Remove any duplicate project references. -->
+    <RemoveDuplicates Inputs="@(UnfilteredSharePointProjectReference)">
+      <Output ItemName="SharePointProjectReference" TaskParameter="Filtered" />
+    </RemoveDuplicates>
+    <RemoveDuplicates Inputs="@(UnfilteredSharePointProjectDependency)">
+      <Output ItemName="SharePointProjectDependency" TaskParameter="Filtered" />
+    </RemoveDuplicates>
+  </Target>
+
+  <!--
+    Build each project referenced by a SharePoint definition file (to ensure its output is available for packaging).
+    
+    Since these references are not true "project-to-project" references, MSBuild will not do this for us.
+    
+    Inputs: @(SharePointProjectDependency)
+  -->
+  <Target Name="BuildSharePointProjectReferences">
+    <MSBuild Projects="@(SharePointProjectDependency)" Properties="Configuration=$(Configuration);Platform=$(Platform)" />
+  </Target>
+
+  <!--
+    Returns feature definition files from a SharePoint project.
+    
+    Feature definitions are None items with FeatureId metadata.
+    
+    Outputs:  @(ReturnedFeature)
+  -->
+  <Target Name="GetFeatures" Outputs="@(ReturnedFeature)">
+    <ItemGroup>
+      <ReturnedFeature Include="@(None)" Condition="%(None.FeatureId) != ''">
+        <ProjectPath>$(MSBuildProjectFullPath)</ProjectPath>
+      </ReturnedFeature>
+    </ItemGroup>
+  </Target>
+
+  <!--
+    Returns project item definition files from a SharePoint project.
+    
+    Project item definitions are None items with SharePointProjectItemId metadata.
+    
+    Outputs:  @(ReturnedProjectItem)
+  -->
+  <Target Name="GetProjectItems" Outputs="@(ReturnedProjectItem)">
+    <ItemGroup>
+      <ReturnedProjectItem Include="@(None)" Condition="%(None.SharePointProjectItemId) != ''">
+        <ProjectPath>$(MSBuildProjectFullPath)</ProjectPath>
+      </ReturnedProjectItem>
+    </ItemGroup>
+  </Target>
+
+  <Target Name="ConfigurePackaging">
+    <!-- If the build is initiated by the IDE, a HostObject will tell this task whether to set IsPackaging to true.
+         From the command line it is always false. -->
+    <SetPackagingProperties ProjectFile="$(MSBuildProjectFile)">
+      <Output Condition="'$(IsPackaging)' == ''" PropertyName="IsPackaging" TaskParameter="IsPackaging" />
+    </SetPackagingProperties>
+  </Target>
+
+  <Target Name="ConditionalPackage" Condition="'$(IsPackaging)' == 'true'">
+    <CallTarget Targets="CreatePackage" />
+  </Target>
+
+  <Target Name="ConditionalPackageValidation" Condition="'$(PackageWithValidation)' == 'true'">
+    <CallTarget Targets="PerformPackageValidation" />
+  </Target>
+
+  <!-- This target is used to package from the command line. -->
+  <Target Name="Package" DependsOnTargets="$(PackageDependsOn)" />
+
+  <!-- This target is used to validate packages from the command line. -->
+  <Target Name="ValidatePackage" DependsOnTargets="$(ValidatePackageDependsOn)" />
+
+  <Target Name="CreatePackage" DependsOnTargets="$(CreatePackageDependsOn)" />
+
+  <Target Name="CreateSharePointProjectService" DependsOnTargets="$(CreateSharePointProjectServiceDependsOn)">
+    
+    <CreateSharePointProjectService Configuration="$(Configuration)"
+                                    Platform="$(Platform)"
+                                    ProjectFile="$(MSBuildProjectFile)"
+                                    ProjectReferences="@(SharePointProjectReference)"
+                                    OutDir="$(TeamBuildOutDir)">
+      <Output PropertyName="ProjectService" TaskParameter="ProjectService" />
+    </CreateSharePointProjectService>
+
+  </Target>
+
+  <Target Name="PerformPackageValidation">
+    
+    <ValidatePackage ProjectId="$(ProjectGuid)"
+                     ProjectService="$(ProjectService)" />
+    
+  </Target>
+
+  <Target Name="PerformEnumeration">
+
+    <MakeDir Directories="$(LayoutPath)" />
+    <MakeDir Directories="$(PackageIntermediatePath)" />
+    <MakeDir Directories="$(BasePackagePath)" />
+
+    <EnumerateFiles IntermediatePath="$(PackageIntermediatePath)"
+                    ProjectId="$(ProjectGuid)"
+                    ProjectService="$(ProjectService)">
+      <Output ItemName="EnumeratedFiles" TaskParameter="EnumeratedFiles" />
+    </EnumerateFiles>
+
+  </Target>
+
+  <!-- Override this target in your project to perform tasks before package layout. -->
+  <Target Name="BeforeLayout" />
+
+  <Target Name="PerformLayout">
+
+    <LayoutFiles LayoutPath="$(LayoutPath)%(EnumeratedFiles.Package)\" Files="@(EnumeratedFiles)" />
+
+  </Target>
+
+  <!-- Override this target in your project to perform tasks after package layout. -->
+  <Target Name="AfterLayout" />
+
+  <Target Name="PerformPackage">
+
+    <PackageFiles LayoutPath="$(LayoutPath)%(EnumeratedFiles.Package)\" PackagePath="$(BasePackagePath)%(EnumeratedFiles.Package).$(PackageExtension)" />
+
+    <!-- Generate list of current packages. -->
+    
+    <ItemGroup>
+      <_GeneratedPackageFiles Include="$(BasePackagePath)%(EnumeratedFiles.Package).$(PackageExtension)" />
+    </ItemGroup>
+
+    <!-- Make sure the directory exists. -->
+
+    <MakeDir Directories="$(IntermediateOutputPath)"/>
+
+    <!-- Write new list of current packages back to disk, replacing the existing list. -->
+    
+    <WriteLinesToFile File="$(IntermediateOutputPath)$(PackageFileList)"
+                      Lines="@(_GeneratedPackageFiles)"
+                      Overwrite="true"/>
+
+  </Target>
+
+  <Target Name="CleanPackage">
+    
+    <!-- Read the list of packages produced by a prior packaging from disk. -->
+    
+    <ReadLinesFromFile File="$(IntermediateOutputPath)$(PackageFileList)">
+      <Output TaskParameter="Lines" ItemName="_PackagesToDelete"/>
+    </ReadLinesFromFile>
+
+    <!-- Find all packages in the final output directory. -->
+    
+    <FindUnderPath Path="$(OutDir)" Files="@(_PackagesToDelete)">
+      <Output TaskParameter="InPath" ItemName="_FoundPackagesToDelete"/>
+    </FindUnderPath>
+
+    <!-- Remove any previously generated package found (and the original package file list). -->
+    
+    <Delete Files="@(_FoundPackagesToDelete);$(IntermediateOutputPath)$(PackageFileList)" />
+
+    <RemoveDir ContinueOnError="true" Directories="$(LayoutPath)" />
+    <RemoveDir ContinueOnError="true" Directories="$(PackageIntermediatePath)" />
+
+  </Target>
+
+  <Import Project="$(CustomAfterSharePointTargets)" Condition="Exists('$(CustomAfterSharePointTargets)')"/>
+
+</Project>

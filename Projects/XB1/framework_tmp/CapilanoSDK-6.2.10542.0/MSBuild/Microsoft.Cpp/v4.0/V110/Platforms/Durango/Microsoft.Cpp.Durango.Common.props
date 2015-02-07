@@ -1,0 +1,116 @@
+﻿<!--
+***********************************************************************************************
+Microsoft.Cpp.Durango.common.props
+
+WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and have
+          created a backup copy.  Incorrect changes to this file will make it
+          impossible to load or build your projects from the command-line or the IDE.
+
+Copyright (C) Microsoft Corporation. All rights reserved.
+***********************************************************************************************
+-->
+
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Condition="'$(ConfigurationType)'=='Application' or '$(ConfigurationType)'=='Makefile' ">
+    <PropertyPageSchema Include="$(VCTargetsPath)\Platforms\$(XdkPlatformName)\$(XdkPlatformName)VCppDebugger.xml" />
+    <PropertyPageSchema Include="$(VCTargetsPath)\Platforms\$(XdkPlatformName)\$(XdkPlatformName)ConfigurationProperties.xml" />
+  </ItemGroup>
+
+  <PropertyGroup Condition="'$(ConfigurationType)'=='Application' or '$(ConfigurationType)'=='Makefile' ">
+    <!-- Debugger -->
+    <DebuggerFlavor>$(XdkPlatformName)VCppDebugger</DebuggerFlavor>
+    <LocalDebuggerDebuggerType>NativeOnly</LocalDebuggerDebuggerType>
+
+    <!-- Disc layout -->
+    <LayoutDir Condition="'$(LayoutDir)'==''">$(Platform)\Layout\</LayoutDir>
+
+    <!-- Do not set these in default props, as project configuration definitions have not yet been set, and defaults may be wrong. -->
+    <AppxPackage>true</AppxPackage>
+    <AppxManifestSchema Condition="'$(AppxManifestSchema)'==''">$(DurangoXdkTasks)AppxManifestSchema.xsd</AppxManifestSchema> 
+    <GenerateAppxPackageOnBuild>false</GenerateAppxPackageOnBuild>
+
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <!-- Not supported -->
+    <UseOfMFC>false</UseOfMFC>
+    <UseOfATL>false</UseOfATL>
+
+    <CharacterSet>Unicode</CharacterSet>
+
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(ConfigurationType)'=='Makefile'">
+    <ForceImportAfterCppTargets>$(VCTargetsPath)\Platforms\$(Platform)\Microsoft.Cpp.$(Platform).Targets</ForceImportAfterCppTargets>
+  </PropertyGroup>
+
+  <!-- CRT redist lists for release and debug. -->
+  <ItemGroup>
+    <CrtList Include="$(DurangoAdkKitPath)crt\amd64\msvcr110.dll;$(DurangoAdkKitPath)crt\amd64\msvcp110.dll;$(DurangoAdkKitPath)crt\amd64\vccorlib110.dll" />
+    <CrtListDebug Include="$(DurangoAdkKitPath)crt\amd64\msvcr110d.dll;$(DurangoAdkKitPath)crt\amd64\msvcp110d.dll;$(DurangoAdkKitPath)crt\amd64\vccorlib110d.dll" />
+  </ItemGroup>
+
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <!-- Consume WinRT Extensions normally expected, except for static libraries and explicit project/file settings. -->
+      <CompileAsWinRT Condition="'%(ClCompile.CompileAsWinRT)' == '' and '$(ConfigurationType)' != 'StaticLibrary'">true</CompileAsWinRT>
+      <!-- - - - -->
+      <PreprocessorDefinitions>_DURANGO;_XBOX_ONE;WIN32_LEAN_AND_MEAN;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <!-- Family API and other definitions based on kit selection. -->
+      <PreprocessorDefinitions Condition="'$(ApplicationEnvironment)'!='title'">WINAPI_FAMILY=WINAPI_FAMILY_TV_APP;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions Condition="'$(ApplicationEnvironment)'=='title'">_TITLE;WINAPI_FAMILY=WINAPI_FAMILY_TV_TITLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <WinRTNoStdLib Condition="'%(ClCompile.WinRTNoStdLib)' == ''">false</WinRTNoStdLib>
+      <!-- /Gm (dependency rebuild optimization) is not compatible with /ZW -->
+      <MinimalRebuild Condition="'%(ClCompile.CompileAsWinRT)' == 'true'">false</MinimalRebuild>
+      <!-- Provide IntelliSense platform winmds. -->
+      <ForcedUsingFiles>"$(TargetPlatformWinMDLocation)\windows.winmd";%(ForcedUsingFiles)</ForcedUsingFiles>
+      <ForcedUsingFiles Condition="'$(ApplicationEnvironment)'=='title'">"$(DurangoKitPath)crt\platform\amd64\platform.winmd";%(ForcedUsingFiles)</ForcedUsingFiles>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
+      <FloatingPointModel>Fast</FloatingPointModel>
+      <AdditionalOptions>/favor:AMD64 %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
+    <Midl>
+      <EnableWindowsRuntime Condition="'%(Midl.EnableWindowsRuntime)' == ''">true</EnableWindowsRuntime>
+      <Enumclass Condition="'%(Midl.Enumclass)' == ''">true</Enumclass>
+      <PrependWithABINamepsace Condition="'%(Midl.PrependWithABINamepsace)' == ''">true</PrependWithABINamepsace>
+      <MetadataFileName Condition="'%(Midl.MetadataFileName)' == ''">$(OutDir)%(Filename).winmd</MetadataFileName>
+      <AdditionalMetadataDirectories>$(Console_SdkWindowsMetadataPath);%(Midl.AdditionalMetadataDirectories)</AdditionalMetadataDirectories>
+      <TargetEnvironment Condition="'%(Midl.TargetEnvironment)' == ''">X64</TargetEnvironment>
+    </Midl>
+    <Link>
+      <EnableUAC>false</EnableUAC>
+      <UACExecutionLevel></UACExecutionLevel>
+      <UACUIAccess>false</UACUIAccess>
+      <GenerateDebugInformation Condition="'%(Link.GenerateDebugInformation)' == ''">true</GenerateDebugInformation>
+      <GenerateWindowsMetadata Condition="'%(Link.GenerateWindowsMetadata)' == '' and '$(ConfigurationType)' != 'StaticLibrary'">true</GenerateWindowsMetadata>
+      <WindowsMetadataFile Condition="'$(RootNamespace)' != '' and '%(Link.WindowsMetadataFile)' == ''">$(OutDir)$(RootNamespace).winmd</WindowsMetadataFile>
+      <WindowsMetadataFile Condition="'%(Link.WindowsMetadataFile)' == ''">$(OutDir)$(TargetName).winmd</WindowsMetadataFile>
+      <TargetMachine Condition="'%(Link.TargetMachine)' == ''">MachineX64</TargetMachine>
+      <IgnoreSpecificDefaultLibraries Condition="'$(ApplicationEnvironment)'=='title'">$(IgnoreSpecificDefaultLibraries);advapi32.lib;atl.lib;atls.lib;atlsd.lib;atlsn.lib;atlsnd.lib;comctl32.lib;comsupp.lib;dbghelp.lib;gdi32.lib;gdiplus.lib;guardcfw.lib;kernel32.lib;mmc.lib;msimg32.lib;msvcole.lib;msvcoled.lib;mswsock.lib;ntstrsafe.lib;ole2.lib;ole2autd.lib;ole2auto.lib;ole2d.lib;ole2ui.lib;ole2uid.lib;ole32.lib;oleacc.lib;oleaut32.lib;oledlg.lib;oledlgd.lib;oldnames.lib;runtimeobject.lib;shell32.lib;shlwapi.lib;strsafe.lib;urlmon.lib;user32.lib;userenv.lib;uuid.lib;wlmole.lib;wlmoled.lib;ws2_32.lib;</IgnoreSpecificDefaultLibraries>
+    </Link>
+    <Lib>
+      <TargetMachine Condition="'%(Lib.TargetMachine)' == ''">MachineX64</TargetMachine>
+    </Lib>
+    <ImpLib>
+      <TargetMachine Condition="'%(ImpLib.TargetMachine)' == ''">MachineX64</TargetMachine>
+    </ImpLib>
+    <Image>
+      <DeploymentContent Condition="'%(Image.DeploymentContent)'==''">true</DeploymentContent>
+    </Image>
+    <Media>
+      <DeploymentContent Condition="'%(Media.DeploymentContent)'==''">true</DeploymentContent>
+    </Media>
+    <Text>
+      <DeploymentContent Condition="'%(Text.DeploymentContent)'==''">true</DeploymentContent>
+    </Text>
+    <Xml>
+      <DeploymentContent Condition="'%(Xml.DeploymentContent)'==''">true</DeploymentContent>
+    </Xml>
+    <Xsd>
+      <DeploymentContent Condition="'%(Xsd.DeploymentContent)'==''">true</DeploymentContent>
+    </Xsd>
+    <Font>
+      <DeploymentContent Condition="'%(Font.DeploymentContent)'==''">true</DeploymentContent>
+    </Font>
+  </ItemDefinitionGroup>
+</Project>

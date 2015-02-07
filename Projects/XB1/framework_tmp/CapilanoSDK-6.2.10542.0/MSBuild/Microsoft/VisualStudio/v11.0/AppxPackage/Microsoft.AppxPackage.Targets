@@ -1,0 +1,1755 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
+
+    <PropertyGroup>
+        <AppxMSBuildToolsPath>$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v11.0\AppxPackage\</AppxMSBuildToolsPath>
+    </PropertyGroup>
+
+    <UsingTask TaskName="Microsoft.Build.AppxPackage.GetMakepriExeFullPath" AssemblyFile="$(AppxMSBuildToolsPath)Microsoft.Build.AppxPackage.dll"/>
+    <UsingTask TaskName="Microsoft.Build.AppxPackage.GeneratePriConfigurationFiles" AssemblyFile="$(AppxMSBuildToolsPath)Microsoft.Build.AppxPackage.dll"/>
+    <UsingTask TaskName="Microsoft.Build.AppxPackage.GenerateProjectPriFile" AssemblyFile="$(AppxMSBuildToolsPath)Microsoft.Build.AppxPackage.dll"/>
+    <UsingTask TaskName="Microsoft.Build.AppxPackage.RemoveDuplicatePriFiles" AssemblyFile="$(AppxMSBuildToolsPath)Microsoft.Build.AppxPackage.dll"/>
+    <UsingTask TaskName="Microsoft.Build.AppxPackage.GetDefaultResourceLanguage" AssemblyFile="$(AppxMSBuildToolsPath)Microsoft.Build.AppxPackage.dll"/>
+    <UsingTask TaskName="Microsoft.Build.AppxPackage.GetPackageArchitecture" AssemblyFile="$(AppxMSBuildToolsPath)Microsoft.Build.AppxPackage.dll"/>
+    <UsingTask TaskName="Microsoft.Build.AppxPackage.ExpandPriContent" AssemblyFile="$(AppxMSBuildToolsPath)Microsoft.Build.AppxPackage.dll"/>
+    <UsingTask TaskName="Microsoft.Build.AppxPackage.GenerateAppxManifest" AssemblyFile="$(AppxMSBuildToolsPath)Microsoft.Build.AppxPackage.dll"/>
+    <UsingTask TaskName="Microsoft.Build.AppxPackage.ValidateAppxManifest" AssemblyFile="$(AppxMSBuildToolsPath)Microsoft.Build.AppxPackage.dll"/>
+    <UsingTask TaskName="Microsoft.Build.AppxPackage.ValidateAppxManifestItems" AssemblyFile="$(AppxMSBuildToolsPath)Microsoft.Build.AppxPackage.dll"/>
+    <UsingTask TaskName="Microsoft.Build.AppxPackage.GenerateAppxPackage" AssemblyFile="$(AppxMSBuildToolsPath)Microsoft.Build.AppxPackage.dll"/>
+    <UsingTask TaskName="Microsoft.Build.AppxPackage.GenerateProjectArchitecturesFile" AssemblyFile="$(AppxMSBuildToolsPath)Microsoft.Build.AppxPackage.dll"/>
+    <UsingTask TaskName="Microsoft.Build.AppxPackage.GenerateAppxPackageRecipe" AssemblyFile="$(AppxMSBuildToolsPath)Microsoft.Build.AppxPackage.dll"/>
+    <UsingTask TaskName="Microsoft.Build.AppxPackage.ExpandPayloadDirectories" AssemblyFile="$(AppxMSBuildToolsPath)Microsoft.Build.AppxPackage.dll"/>
+    <UsingTask TaskName="Microsoft.Build.AppxPackage.RemoveDuplicatePayload" AssemblyFile="$(AppxMSBuildToolsPath)Microsoft.Build.AppxPackage.dll"/>
+    <UsingTask TaskName="Microsoft.Build.AppxPackage.RemoveDuplicateSDKReferences" AssemblyFile="$(AppxMSBuildToolsPath)Microsoft.Build.AppxPackage.dll"/>
+    <UsingTask TaskName="Microsoft.Build.AppxPackage.SignAppxPackage" AssemblyFile="$(AppxMSBuildToolsPath)Microsoft.Build.AppxPackage.dll"/>
+    <UsingTask TaskName="Microsoft.Build.AppxPackage.CreateAppStoreContainer" AssemblyFile="$(AppxMSBuildToolsPath)Microsoft.Build.AppxPackage.dll"/>
+    <UsingTask TaskName="Microsoft.Build.AppxPackage.GenerateAppxSymbolPackage" AssemblyFile="$(AppxMSBuildToolsPath)Microsoft.Build.AppxPackage.dll"/>
+    <UsingTask TaskName="Microsoft.Build.AppxPackage.ExtractHashUri" AssemblyFile="$(AppxMSBuildToolsPath)Microsoft.Build.AppxPackage.dll"/>
+    <UsingTask TaskName="Microsoft.Build.AppxPackage.ValidateAppxPackage" AssemblyFile="$(AppxMSBuildToolsPath)Microsoft.Build.AppxPackage.dll"/>
+    <UsingTask TaskName="Microsoft.Build.AppxPackage.CreateAppxLayout" AssemblyFile="$(AppxMSBuildToolsPath)Microsoft.Build.AppxPackage.dll"/>
+    <UsingTask TaskName="Microsoft.Build.AppxPackage.UnregisterAppx" AssemblyFile="$(AppxMSBuildToolsPath)Microsoft.Build.AppxPackage.dll"/>
+    <UsingTask TaskName="Microsoft.Build.AppxPackage.CreatePriFilesForPortableLibraries" AssemblyFile="$(AppxMSBuildToolsPath)Microsoft.Build.AppxPackage.dll"/>
+    <UsingTask TaskName="Microsoft.Build.AppxPackage.GetFrameworkSdkPackages" AssemblyFile="$(AppxMSBuildToolsPath)Microsoft.Build.AppxPackage.dll"/>
+
+    <!-- Adjust AppxPackage to be true Boolean flag. -->
+    <PropertyGroup>
+        <AppxPackage Condition="'$(AppxPackage)' != 'true'">false</AppxPackage>
+    </PropertyGroup>
+
+    <!-- Flags controlling certain features -->
+    <PropertyGroup>
+        <AppxUseHardlinksIfPossible Condition="'$(AppxUseHardlinksIfPossible)' == ''">true</AppxUseHardlinksIfPossible>
+        <AppxSkipUnchangedFiles Condition="'$(AppxSkipUnchangedFiles)' == ''">true</AppxSkipUnchangedFiles>
+        <AppxGeneratePriEnabled Condition="'$(AppxGeneratePriEnabled)' == ''">true</AppxGeneratePriEnabled>
+        <AppxPackageSigningEnabled Condition="'$(AppxPackageSigningEnabled)' == ''">true</AppxPackageSigningEnabled>
+        <AppxPackageIncludePrivateSymbols Condition="'$(AppxPackageIncludePrivateSymbols)' == ''">false</AppxPackageIncludePrivateSymbols>
+        <AppxSymbolPackageEnabled Condition="'$(AppxSymbolPackageEnabled)' == ''">true</AppxSymbolPackageEnabled>
+        <AppxTestLayoutEnabled Condition="'$(AppxTestLayoutEnabled)' == ''">true</AppxTestLayoutEnabled>
+        <AppxPackageValidationEnabled Condition="'$(AppxPackageValidationEnabled)' == ''">true</AppxPackageValidationEnabled>
+        <AppxHarvestWinmdRegistration Condition="'$(AppxHarvestWinmdRegistration)' == ''">true</AppxHarvestWinmdRegistration>
+        <AutoIncrementPackageRevision Condition="'$(AutoIncrementPackageRevision)' == ''">true</AutoIncrementPackageRevision>
+        <AppxPrependPriInitialPath Condition="'$(AppxPrependPriInitialPath)' == ''">true</AppxPrependPriInitialPath>
+        <EnableSigningChecks Condition=" '$(EnableSigningChecks)' == '' ">true</EnableSigningChecks>
+        <AppxStrictManifestValidationEnabled Condition="'$(AppxStrictManifestValidationEnabled)' == ''">true</AppxStrictManifestValidationEnabled>
+    </PropertyGroup>
+
+    <!-- Various properties not intended for overriding. -->
+    <PropertyGroup>
+        <AppxOSMinVersion Condition="'$(AppxOSMinVersion)' == ''">6.2.1</AppxOSMinVersion>
+        <AppxOSMaxVersionTested Condition="'$(AppxOSMaxVersionTested)' == ''">$(AppxOSMinVersion)</AppxOSMaxVersionTested>
+    </PropertyGroup>
+
+    <!-- Various overridable properties. -->
+    <PropertyGroup>
+        <AppxPackageDirName Condition="'$(AppxPackageDirName)' == ''">AppPackages</AppxPackageDirName>
+        <AppxPackageDir Condition=" '$(OutDirWasSpecified)' == 'true' ">$(OutDir)$(AppxPackageDirName)\</AppxPackageDir>
+        <AppxPackageDir Condition="'$(AppxPackageDir)' == ''">$(ProjectDir)$(AppxPackageDirName)\</AppxPackageDir>
+        <AppxPackageDir Condition="!HasTrailingSlash('$(AppxPackageDir)')">$(AppxPackageDir)\</AppxPackageDir>
+        <AppxPackageArtifactsDir Condition="'$(AppxPackageArtifactsDir)' == ''"></AppxPackageArtifactsDir>
+        <AppxManifestSchema Condition="'$(AppxManifestSchema)' == ''">$(TargetPlatformSdkPath)\Include\WinRT\AppxManifestSchema.xsd</AppxManifestSchema>
+        <FinalAppxManifestName Condition="'$(FinalAppxManifestName)' == ''">$(TargetDir)$(AppxPackageArtifactsDir)AppxManifest.xml</FinalAppxManifestName>
+        <AppxValidateAppxManifest Condition="'$(AppxValidateAppxManifest)' == ''">true</AppxValidateAppxManifest>
+        <MakePriExeFullPath Condition="'$(MakePriExeFullPath)' == ''"></MakePriExeFullPath>
+        <PdbCopyExeFullPath Condition="'$(PdbCopyExeFullPath)' == ''">$(AppxMSBuildToolsPath)PDBCopy.exe</PdbCopyExeFullPath>
+        <AppxPriInitialPath Condition="'$(AppxPrependPriInitialPath)' != 'true'"></AppxPriInitialPath>
+        <AppxPriInitialPath Condition="'$(AppxPrependPriInitialPath)' == 'true' and '$(AppxPackage)' == 'true' and '$(AppxPriInitialPath)' == ''"></AppxPriInitialPath>
+        <AppxPriInitialPath Condition="'$(AppxPrependPriInitialPath)' == 'true' and '$(AppxPackage)' != 'true' and '$(AppxPriInitialPath)' == ''">$(TargetName)</AppxPriInitialPath>
+        <ProjectPriFileName Condition="'$(AppxPackage)' == 'true' and '$(ProjectPriFileName)' == ''">resources.pri</ProjectPriFileName>
+        <ProjectPriFileName Condition="'$(AppxPackage)' != 'true' and '$(ProjectPriFileName)' == ''">$(AppxPriInitialPath).pri</ProjectPriFileName>
+        <ProjectPriFullPath Condition="'$(ProjectPriFullPath)' == ''">$(TargetDir)$(AppxPackageArtifactsDir)$(ProjectPriFileName)</ProjectPriFullPath>
+        <AppxPackageRecipe Condition="'$(AppxPackageRecipe)' == ''">$(TargetDir)$(AppxPackageArtifactsDir)$(ProjectName).build.appxrecipe</AppxPackageRecipe>
+        <FinalAppxPackageRecipe Condition="'$(FinalAppxPackageRecipe)' == ''">$(TargetDir)$(AppxPackageArtifactsDir)$(ProjectName).appxrecipe</FinalAppxPackageRecipe>
+        <AppxLayoutFolder Condition="'$(AppxLayoutFolder)' == ''">Layout</AppxLayoutFolder>
+        <AppxLayoutDir Condition="'$(AppxLayoutDir)' == ''">$(TargetDir)$(AppxPackageArtifactsDir)$(AppxLayoutFolder)\</AppxLayoutDir>
+        <AppxLayoutDir Condition="!HasTrailingSlash('$(AppxLayoutDir)')">$(AppxLayoutDir)\</AppxLayoutDir>
+        <AllowLocalNetworkLoopback Condition="'$(AllowLocalNetworkLoopback)' == ''">true</AllowLocalNetworkLoopback>
+        <AppxDefaultHashUri Condition="'$(AppxDefaultHashUri)' == ''">http://www.w3.org/2001/04/xmlenc#sha256</AppxDefaultHashUri>
+        <LayoutDir Condition="'$(LayoutDir)'==''">$(TargetDir)AppX</LayoutDir>
+        <ManagedWinmdInprocImplementation Condition="'$(ManagedWinmdInprocImplementation)' == ''">CLRHost.dll</ManagedWinmdInprocImplementation>
+        <UseIncrementalAppxRegistration Condition="'$(UseIncrementalAppxRegistration)' == ''">true</UseIncrementalAppxRegistration>
+        <AppxPackagingInfoFile Condition="'$(AppxPackagingInfoFile)' == ''">$(IntermediateOutputPath)_pkginfo.txt</AppxPackagingInfoFile>
+        <AppxOSMinVersionReplaceManifestVersion Condition="'$(AppxOSMinVersionReplaceManifestVersion)' == ''">true</AppxOSMinVersionReplaceManifestVersion>
+        <AppxOSMaxVersionTestedReplaceManifestVersion Condition="'$(AppxOSMaxVersionTestedReplaceManifestVersion)' == ''">true</AppxOSMaxVersionTestedReplaceManifestVersion>
+        <AppxCopyLocalFilesOutputGroupIncludeXmlFiles Condition="'$(AppxCopyLocalFilesOutputGroupIncludeXmlFiles)' != 'true'">false</AppxCopyLocalFilesOutputGroupIncludeXmlFiles>
+    </PropertyGroup>
+
+    <!-- Calculate whether to allow debug framework references in app manifest.    -->
+    <!-- Allow overriding this from command line or user config file if necessary. -->
+
+    <PropertyGroup Condition="'$(AppxPackageAllowDebugFrameworkReferencesInManifest)' == ''">
+
+        <!-- If inside Visual Studio, if not packaging for store, allow debug framework references. -->
+        <AppxPackageAllowDebugFrameworkReferencesInManifest Condition="'$(BuildingInsideVisualStudio)' == 'true'
+                                                                   and '$(AppxPackageIsForStore)' != 'true'">true</AppxPackageAllowDebugFrameworkReferencesInManifest>
+
+        <!-- On command line, if building with Debug SDK configuration, allow debug framework references. -->
+        <AppxPackageAllowDebugFrameworkReferencesInManifest Condition="'$(BuildingInsideVisualStudio)' != 'true'
+                                                                   and '$(TargetedSDKConfiguration)' == 'Debug'">true</AppxPackageAllowDebugFrameworkReferencesInManifest>
+
+        <!-- All other cases, do not allow debug framework references. -->
+        <AppxPackageAllowDebugFrameworkReferencesInManifest Condition="'$(AppxPackageAllowDebugFrameworkReferencesInManifest)' == ''">false</AppxPackageAllowDebugFrameworkReferencesInManifest>
+
+    </PropertyGroup>
+
+    <!--
+        When building on the command line or in TFS (determined by looking at the $(BuildingInsideVisualStudio) property), if build is invoked on an
+        app package-producing project, the package for the project will be produced as part of building the project without specifying any additional
+        flags or targets. This is control by an MSBuild property named GenerateAppxPackageOnBuild which is set to true by default.
+    
+        If $(BuildingInsideVisualStudio) = false and $(GenerateAppxPackageOnBuild) = true, then build will also produce a package.
+    -->
+    <PropertyGroup>
+        <GenerateAppxPackageOnBuild Condition="'$(AppxPackage)' == 'true' and '$(GenerateAppxPackageOnBuild)' == '' and '$(BuildingInsideVisualStudio)' != 'true'">true</GenerateAppxPackageOnBuild>
+    </PropertyGroup>
+
+    <!-- Names of the files which are allways present on the machine and should not be part of the payload. -->
+    <ItemGroup>
+        <AppxSystemBinary Include="CLRHost.dll" />
+        <AppxSystemBinary Include="CLRHost.exe" />
+    </ItemGroup>
+
+    <!-- Reserved file names which cannot appear in the package. -->
+    <ItemGroup>
+        <AppxReservedFileName Include="AppxManifest.xml" />
+        <AppxReservedFileName Include="AppxBlockMap.xml" />
+        <AppxReservedFileName Include="[Content_Types].xml" />
+        <AppxReservedFileName Include="AppxSignature.p7x" />
+        <AppxReservedFileName Include="Microsoft.System.Package.Metadata" />
+    </ItemGroup>
+
+    <!-- XPath queries used to extract file names from the manifest. -->
+    <PropertyGroup>
+        <AppxManifestQueryNamespacePrefix>m</AppxManifestQueryNamespacePrefix>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <AppxManifestFileNameQuery Include="./m:Package/m:Extensions/m:Extension/m:InProcessServer/m:Path" />
+        <AppxManifestFileNameQuery Include="./m:Package/m:Extensions/m:Extension/m:OutOfProcessServer/m:Path" />
+        <AppxManifestFileNameQuery Include="./m:Package/m:Extensions/m:Extension/m:ProxyStub/m:Path" />
+        <AppxManifestFileNameQuery Include="./m:Package/m:Extensions/m:Extension/m:GameExplorer/@GameDefinitionContainer" />
+        <AppxManifestFileNameQuery Include="./m:Package/m:Extensions/m:Extension/m:Certificates/m:Certificate/@Content" />
+        <AppxManifestFileNameQuery Include="./m:Package/m:Applications/m:Application/@Executable" />
+        <AppxManifestFileNameQuery Include="./m:Package/m:Applications/m:Application/m:Extensions/m:Extension/@Executable" />
+    </ItemGroup>
+
+    <!-- XPath queries used to extract image file names from the manifest. -->
+    <ItemGroup>
+        <AppxManifestImageFileNameQuery Include="./m:Package/m:Properties/m:Logo">
+            <DescriptionID>StoreLogo</DescriptionID>
+            <ExpectedScaleDimensions>100:50x50;140:70x70;180:90x90</ExpectedScaleDimensions>
+        </AppxManifestImageFileNameQuery>
+        <AppxManifestImageFileNameQuery Include="./m:Package/m:Applications/m:Application/m:VisualElements/@Logo">
+            <DescriptionID>TileLogo</DescriptionID>
+            <ExpectedScaleDimensions>80:120x120;100:150x150;140:210x210;180:270x270</ExpectedScaleDimensions>
+        </AppxManifestImageFileNameQuery>
+        <AppxManifestImageFileNameQuery Include="./m:Package/m:Applications/m:Application/m:VisualElements/@SmallLogo">
+            <DescriptionID>SmallLogo</DescriptionID>
+            <ExpectedScaleDimensions>80:24x24;100:30x30;140:42x42;180:54x54</ExpectedScaleDimensions>
+            <ExpectedTargetSizes>16;32;48;256</ExpectedTargetSizes>
+        </AppxManifestImageFileNameQuery>
+        <AppxManifestImageFileNameQuery Include="./m:Package/m:Applications/m:Application/m:VisualElements/m:DefaultTile/@WideLogo">
+            <DescriptionID>WideLogo</DescriptionID>
+            <ExpectedScaleDimensions>80:248x120;100:310x150;140:434x210;180:558x270</ExpectedScaleDimensions>
+        </AppxManifestImageFileNameQuery>
+        <AppxManifestImageFileNameQuery Include="./m:Package/m:Applications/m:Application/m:VisualElements/m:LockScreen/@BadgeLogo">
+            <DescriptionID>BadgeLogo</DescriptionID>
+            <ExpectedScaleDimensions>100:24x24;140:33x33;180:43x43</ExpectedScaleDimensions>
+        </AppxManifestImageFileNameQuery>
+        <AppxManifestImageFileNameQuery Include="./m:Package/m:Applications/m:Application/m:VisualElements/m:SplashScreen/@Image">
+            <DescriptionID>SplashScreen</DescriptionID>
+            <ExpectedScaleDimensions>100:620x300;140:868x420;180:1116x540</ExpectedScaleDimensions>
+        </AppxManifestImageFileNameQuery>
+    </ItemGroup>
+
+    <!-- Manifest metadata items. -->
+    
+    <!-- Those will be transformed into Name/Value or Name/Version pairs as follows:                         -->
+    <!--                                                                                                     -->
+    <!-- If identity of the item (attribute 'Include') points to existing file and there is                  -->
+    <!-- no supplied value or version, file version of given file will be extracted and stored               -->
+    <!-- as Version attribute of metadata with name equal to file name and extension.                        -->
+    <!--                                                                                                     -->
+    <!-- If item has metadata 'Value', then it is directly stored in the manifest as name/value pair.        -->
+    <!-- If item has metadata 'Version', then it is directly stored in the manifest as name/version pair.    -->
+    <!--                                                                                                     -->
+    <!-- If metadata 'Name' is supplied, it will be used instead of identity of the item. This is useful     -->
+    <!-- if we use binary to extract file version, but want to give it different name in generated manifest. -->
+
+    <ItemGroup Label="AppxManifestMetadata">
+
+        <AppxManifestMetadata Include="TargetFrameworkMoniker" Condition="'$(TargetFrameworkMoniker)' != ''">
+            <Value>$(TargetFrameworkMoniker)</Value>
+        </AppxManifestMetadata>
+
+        <AppxManifestMetadata Include="VisualStudio">
+            <Version>$(VisualStudioVersion)</Version>
+        </AppxManifestMetadata>
+
+        <AppxManifestMetadata Include="VisualStudioEdition">
+            <Value>$(VisualStudioEdition)</Value>
+        </AppxManifestMetadata>
+
+        <AppxManifestMetadata Include="$(ComSpec)">
+            <Name>OperatingSystem</Name>
+        </AppxManifestMetadata>
+
+        <AppxManifestMetadata Include="$(AppxMSBuildToolsPath)Microsoft.Build.AppxPackage.dll" />
+
+    </ItemGroup>
+
+    <!-- Packaging output group default values -->
+    <PropertyGroup>
+        <IncludeBuiltProjectOutputGroup Condition="'$(IncludeBuiltProjectOutputGroup)' == ''">true</IncludeBuiltProjectOutputGroup>
+        <IncludeDebugSymbolsProjectOutputGroup Condition="'$(IncludeDebugSymbolsProjectOutputGroup)' == ''">true</IncludeDebugSymbolsProjectOutputGroup>
+        <IncludeDocumentationProjectOutputGroup Condition="'$(IncludeDocumentationProjectOutputGroup)' == ''">false</IncludeDocumentationProjectOutputGroup>
+        <IncludeSatelliteDllsProjectOutputGroup Condition="'$(IncludeSatelliteDllsProjectOutputGroup)' == ''">false</IncludeSatelliteDllsProjectOutputGroup>
+        <IncludeSourceFilesProjectOutputGroup Condition="'$(IncludeSourceFilesProjectOutputGroup)' == ''">false</IncludeSourceFilesProjectOutputGroup>
+        <IncludeContentFilesProjectOutputGroup Condition="'$(IncludeContentFilesProjectOutputGroup)' == ''">true</IncludeContentFilesProjectOutputGroup>
+        <IncludeSGenFilesOutputGroup Condition="'$(IncludeSGenFilesOutputGroup)' == ''">false</IncludeSGenFilesOutputGroup>
+        <IncludeCopyLocalFilesOutputGroup Condition="'$(IncludeCopyLocalFilesOutputGroup)' == ''">true</IncludeCopyLocalFilesOutputGroup>
+        <IncludeComFilesOutputGroup Condition="'$(IncludeComFilesOutputGroup)' == ''">false</IncludeComFilesOutputGroup>
+        <IncludeCustomOutputGroupForPackaging Condition="'$(IncludeCustomOutputGroupForPackaging)' == ''">false</IncludeCustomOutputGroupForPackaging>
+        <IncludeCopyWinmdArtifactsOutputGroup Condition="'$(IncludeCopyWinmdArtifactsOutputGroup)' == ''">true</IncludeCopyWinmdArtifactsOutputGroup>
+        <IncludeSDKRedistOutputGroup Condition="'$(IncludeSDKRedistOutputGroup)' == ''">true</IncludeSDKRedistOutputGroup>
+        <IncludePriFilesOutputGroup Condition="'$(IncludePriFilesOutputGroup)' == ''">true</IncludePriFilesOutputGroup>
+        <IncludeGetResolvedSDKReferences Condition="'$(IncludeGetResolvedSDKReferences)' == ''">true</IncludeGetResolvedSDKReferences>
+    </PropertyGroup>
+
+    <!-- Entry points for the project systems. -->
+    <PropertyGroup Condition="'$(AppxPackage)' == 'true'">
+        <CleanPackageAction>_CleanAppxPackage</CleanPackageAction>
+        <PackageAction>_GenerateAppxPackage</PackageAction>
+        <RebuildPackageAction>_RebuildAppxPackage</RebuildPackageAction>
+    </PropertyGroup>
+
+    <!-- Alter behavior of task ResolveAssemblyReferences to error on architecture mismatch. -->
+    <PropertyGroup>
+        <ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>Error</ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>
+    </PropertyGroup>
+
+    <!-- ============================================================================================ -->
+    <!-- Overriding Publish target from Microsoft.Common.targets to tie into command-line publishing. -->
+    <!-- ============================================================================================ -->
+
+    <Target Name="Publish"
+            Condition="'$(AppxPackage)' == 'true'"
+            DependsOnTargets="Build;$(PackageAction)"
+            />
+
+    <!--
+    ***********************************************************************************************
+    ***********************************************************************************************
+        Actions happening during the build
+    ***********************************************************************************************
+    ***********************************************************************************************
+    -->
+    <PropertyGroup>
+        <PrepareForRunDependsOn>
+            $(PrepareForRunDependsOn);
+            _ValidatePresenceOfAppxManifestItems;
+            GetPackagingOutputs;
+            _GetPackageProperties;
+            _GenerateProjectPriFile;
+            _ComputeAppxPackagePayload;
+            _GenerateAppxManifest;
+            _GenerateAppxPackageRecipe
+        </PrepareForRunDependsOn>
+        <PrepareForRunDependsOn Condition=" '$(GenerateAppxPackageOnBuild)' == 'true'">
+            $(PrepareForRunDependsOn);
+            _GenerateAppxPackage
+        </PrepareForRunDependsOn>
+        <PrepareForRunDependsOn>
+            $(PrepareForRunDependsOn);
+            _AppendToReadTlogFile;
+            _AppendToWriteTlogFile
+        </PrepareForRunDependsOn>
+    </PropertyGroup>
+
+    <PropertyGroup>
+        <ValidatePresenceOfAppxManifestItemsDependsOn>
+            $(ValidatePresenceOfAppxManifestItemsDependsOn);
+        </ValidatePresenceOfAppxManifestItemsDependsOn>
+    </PropertyGroup>
+
+    <!-- Finds out if there is a custom AppxManifest override item, -->
+    <!-- validates that one and only one manifest exists,           -->
+    <!-- extracts identity name and version out of the manifest,    -->
+    <!-- defines ProjectPriIndexName,                               -->
+    <!-- and defines SourceAppxManifest item.                       -->
+    <Target Name="_ValidatePresenceOfAppxManifestItems"
+            DependsOnTargets="$(ValidatePresenceOfAppxManifestItemsDependsOn)"
+            >
+
+        <ItemGroup>
+            <CustomAppxManifest Include="@(Content)" Condition="'%(Identity)' == 'AppxManifest.xml'" />
+        </ItemGroup>
+
+        <ValidateAppxManifestItems AppxPackageProject="$(AppxPackage)"
+                                   AppxManifestItems="@(AppxManifest)"
+                                   CustomAppxManifestItems="@(CustomAppxManifest)">
+            <Output TaskParameter="IdentityName" PropertyName="AppxManifestIdentityName" />
+            <Output TaskParameter="IdentityVersion" PropertyName="AppxManifestIdentityVersion" />
+        </ValidateAppxManifestItems>
+
+        <ItemGroup>
+            <SourceAppxManifest Include="@(AppxManifest)" Condition="'@(AppxManifest)' != ''" />
+            <SourceAppxManifest Include="@(CustomAppxManifest)" Condition="'@(CustomAppxManifest)' != ''" />
+        </ItemGroup>
+
+        <PropertyGroup Condition="'$(ProjectPriIndexName)' == ''">
+            <ProjectPriIndexName Condition="'$(AppxPackage)' == 'true'">$(AppxManifestIdentityName)</ProjectPriIndexName>
+            <ProjectPriIndexName Condition="'$(AppxPackage)' != 'true'">$(AppxPriInitialPath)</ProjectPriIndexName>
+        </PropertyGroup>
+
+        <PropertyGroup>
+            <_CustomAppxManifestUsed Condition="'@(CustomAppxManifest)' == ''">false</_CustomAppxManifestUsed>
+            <_CustomAppxManifestUsed Condition="'@(CustomAppxManifest)' != ''">true</_CustomAppxManifestUsed>
+        </PropertyGroup>
+    </Target>
+
+    <!-- ============================ -->
+    <!-- Generating project PRI file. -->
+    <!-- ============================ -->
+
+    <PropertyGroup>
+        <_GenerateProjectPriFileDependsOn>
+            $(_GenerateProjectPriFileDependsOn);
+            BeforeGenerateProjectPriFile;
+            _GeneratePrisForPortableLibraries;
+            _GetPriFilesFromPayload;
+            _ComputeInputPriFiles;
+            _GenerateProjectPriConfigurationFiles;
+            _CalculateInputsForGenerateProjectPriFileCore;
+            _GenerateProjectPriFileCore;
+            _AddFileReadsAndFileWritesForProjectPri;
+            _CreateProjectPriFileItem;
+            _ExpandPriFiles;
+            AfterGenerateProjectPriFile
+        </_GenerateProjectPriFileDependsOn>
+    </PropertyGroup>
+
+    <PropertyGroup>
+        <_PriConfigXmlPath>$(IntermediateOutputPath)priconfig.xml</_PriConfigXmlPath>
+        <_LayoutResfilesPath>$(IntermediateOutputPath)layout.resfiles</_LayoutResfilesPath>
+        <_ResourcesResfilesPath>$(IntermediateOutputPath)resources.resfiles</_ResourcesResfilesPath>
+        <_PriResfilesPath>$(IntermediateOutputPath)pri.resfiles</_PriResfilesPath>
+        <_LanguageQualifiersPath>$(IntermediateOutputPath)LanguageQualifiers.txt</_LanguageQualifiersPath>
+    </PropertyGroup>
+
+    <Target Name="_GenerateProjectPriFile"
+            Condition="'$(AppxGeneratePriEnabled)' == 'true'"
+            DependsOnTargets="$(_GenerateProjectPriFileDependsOn)"
+            />
+
+    <!-- Override to specify actions to happen before generating project PRI file. -->
+    <Target Name="BeforeGenerateProjectPriFile" />
+
+    <!-- Generates a PRI file for all managed libraries that contain .resources files   -->
+    <!-- in them (and their satellites).  This allows a .NET Portable Library to be     -->
+    <!-- built with only .resources files, yet still be localized when compiled into    -->
+    <!-- an AppX package where the ResourceManager uses the WinRT resource manager.     -->
+    <Target Name="_GeneratePrisForPortableLibraries"
+            Condition="'$(AppxPackage)' == 'true'"
+            >
+
+        <ItemGroup>
+            <_LibrariesUnfiltered Include="@(PackagingOutputs)" Condition="'%(Extension)' == '.dll'" />
+        </ItemGroup>
+
+        <RemoveDuplicatePayload Inputs="@(_LibrariesUnfiltered)">
+            <Output TaskParameter="Filtered" ItemName="_Libraries" />
+        </RemoveDuplicatePayload>
+
+        <GenerateResource
+                    ExtractResWFiles="true"
+                    Sources="@(_Libraries)"
+                    UseSourcePath="$(UseSourcePath)"
+                    References="@(ReferencePath)"
+                    AdditionalInputs="$(MSBuildAllProjects)"
+                    NeverLockTypeAssemblies="$(GenerateResourceNeverLockTypeAssemblies)"
+                    StateFile="$(IntermediateOutputPath)$(MSBuildProjectFile).GenerateResource.Cache"
+                    OutputDirectory="$(IntermediateOutputPath)"
+                    ExecuteAsTool="false"
+                    MSBuildRuntime="$(GenerateResourceMSBuildRuntime)"
+                    MSBuildArchitecture="$(GenerateResourceMSBuildArchitecture)">
+
+            <Output TaskParameter="FilesWritten" ItemName="ExtractedFileWrites"/>
+            <Output TaskParameter="OutputResources" ItemName="CreatedResWFiles" />
+        </GenerateResource>
+
+        <ItemGroup>
+            <FileWrites Include="@(ExtractedFileWrites)" />
+        </ItemGroup>
+
+        <Message Importance="low" Text="Created resource files: @(CreatedResWFiles)" />
+
+        <GetMakepriExeFullPath MakePriExeFullPath="$(MakePriExeFullPath)"
+                               Condition="'$(_ActualMakePriExeFullPath)' == ''"
+                               >
+            <Output TaskParameter="ActualMakePriExeFullPath" PropertyName="_ActualMakePriExeFullPath" />
+        </GetMakepriExeFullPath>
+
+        <!-- Now generate a PRI file for each set of ResW files (ie, a main assembly + all satellites). -->
+        <!-- Note: The task relies on some metadata set on each ITaskItem, set by GenerateResource.  -->
+
+        <CreatePriFilesForPortableLibraries
+                        MakePriExeFullPath="$(_ActualMakePriExeFullPath)"
+                        ContentToIndex="@(CreatedResWFiles)"
+                        IntermediateDirectory="$(IntermediateOutputPath)"
+                        AdditionalMakepriExeParameters="$(AppxCreatePriFilesForPortableLibrariesAdditionalMakepriExeParameters)"
+                        DefaultResourceLanguage="$(DefaultResourceLanguage)"
+                        >
+            <Output TaskParameter="IntermediateFileWrites" ItemName="FileWrites" />
+            <Output TaskParameter="CreatedPriFiles" ItemName="_PortableLibraryCreatedPriFiles" />
+        </CreatePriFilesForPortableLibraries>
+
+        <Message Importance="low" Text="Created PRI files: @(_PortableLibraryCreatedPriFiles)" />
+
+        <ItemGroup>
+            <FileWrites Include="@(_PortableLibraryCreatedPriFiles)" />
+        </ItemGroup>
+
+    </Target>
+
+    <!-- Get list of PRI files from the payload. -->
+    <Target Name="_GetPriFilesFromPayload"
+            Condition="'$(AppxPackage)' == 'true'"
+            >
+
+        <ItemGroup>
+            <_PriFilesFromPayloadRaw Include="@(PackagingOutputs)"
+                                     Condition="'%(Extension)' == '.pri' 
+                                            and '%(ProjectName)' != '$(ProjectName)'"
+                                     />
+            <_PriFilesFromPayloadRaw Include="@(PackagingOutputs)"
+                                     Condition="'%(Extension)' == '.pri' 
+                                            and '%(ProjectName)' == '$(ProjectName)' 
+                                            and '%(OutputGroup)' != 'ProjectPriFile'"
+                                     />
+        </ItemGroup>
+
+        <RemoveDuplicatePriFiles Inputs="@(_PriFilesFromPayloadRaw)">
+            <Output TaskParameter="Filtered" ItemName="_PriFilesFromPayload" />
+        </RemoveDuplicatePriFiles>
+
+    </Target>
+
+    <!-- Compute final list of input PRI files. -->
+    <Target Name="_ComputeInputPriFiles"
+            Condition="'$(AppxPackage)' == 'true'"
+            >
+
+        <ItemGroup>
+            <_PriFile Include="@(_PriFilesFromPayload)" />
+            <_PriFile Include="@(_PortableLibraryCreatedPriFiles)" />
+        </ItemGroup>
+
+    </Target>
+
+    <!-- Generates configuration files for makepri.exe. -->
+    <Target Name="_GenerateProjectPriConfigurationFiles"
+            Inputs="$(MSBuildProjectFullPath);@(_PriFile)"
+            Outputs="$(_PriConfigXmlPath);$(_LayoutResfilesPath);$(_ResourcesResfilesPath);$(_PriResfilesPath)"
+            >
+
+        <ItemGroup>
+            <_LayoutFile Include="@(PackagingOutputs)" Condition="'%(OutputGroup)' == 'ContentFilesProjectOutputGroup' and '%(ProjectName)' == '$(ProjectName)'" />
+            <_LayoutFile Include="@(PackagingOutputs)" Condition="'%(OutputGroup)' == 'CustomOutputGroupForPackaging' and '%(ProjectName)' == '$(ProjectName)'" />
+        </ItemGroup>
+
+        <GeneratePriConfigurationFiles PriConfigXmlPath="$(_PriConfigXmlPath)"
+                                       LayoutResfilesPath="$(_LayoutResfilesPath)"
+                                       ResourcesResfilesPath="$(_ResourcesResfilesPath)"
+                                       PriResfilesPath="$(_PriResfilesPath)"
+                                       LayoutFiles="@(_LayoutFile)"
+                                       PRIResourceFiles="@(PRIResource)"
+                                       PriFiles="@(_PriFile)"
+                                       DefaultResourceLanguage="$(DefaultResourceLanguage)"
+                                       PriInitialPath="$(AppxPriInitialPath)"
+                                       >
+            <Output TaskParameter="IntermediateFileWrites" ItemName="FileWrites" />
+        </GeneratePriConfigurationFiles>
+
+        <Message Text="$(MSBuildProjectName) -> $(_PriConfigXmlPath)" />
+        <Message Text="$(MSBuildProjectName) -> $(_LayoutResfilesPath)" />
+        <Message Text="$(MSBuildProjectName) -> $(_ResourcesResfilesPath)" />
+        <Message Text="$(MSBuildProjectName) -> $(_PriResfilesPath)" />
+
+    </Target>
+
+    <!-- Calculate inputs for _GenerateProjectPriFileCore. -->
+    <Target Name="_CalculateInputsForGenerateProjectPriFileCore">
+        <ItemGroup>
+            <_GenerateProjectPriFileCoreInput Include="$(_PriConfigXmlPath)" />
+            <_GenerateProjectPriFileCoreInput Include="$(_LayoutResfilesPath)" />
+            <_GenerateProjectPriFileCoreInput Include="$(_ResourcesResfilesPath)" />
+            <_GenerateProjectPriFileCoreInput Include="$(_PriResfilesPath)" />
+            <_GenerateProjectPriFileCoreInput Include="@(PRIResource)" />
+            <_GenerateProjectPriFileCoreInput Include="@(_PriFile)" />
+            <_GenerateProjectPriFileCoreInput Include="@(SourceAppxManifest)" />
+        </ItemGroup>
+    </Target>
+
+    <!-- Generates intermediate PRI file for the current project. -->
+    <Target Name="_GenerateProjectPriFileCore"
+            Inputs="@(_GenerateProjectPriFileCoreInput)"
+            Outputs="$(ProjectPriFullPath)"
+            >
+
+        <GetMakepriExeFullPath MakePriExeFullPath="$(MakePriExeFullPath)"
+                               Condition="'$(_ActualMakePriExeFullPath)' == ''"
+                               >
+            <Output TaskParameter="ActualMakePriExeFullPath" PropertyName="_ActualMakePriExeFullPath" />
+        </GetMakepriExeFullPath>
+
+        <GenerateProjectPriFile MakePriExeFullPath="$(_ActualMakePriExeFullPath)"
+                                PriConfigXmlPath="$(_PriConfigXmlPath)"
+                                SecondPassIndexFile="$(_ResourcesResfilesPath)"
+                                ProjectPriIndexName="$(ProjectPriIndexName)"
+                                ProjectDirectory="$(ProjectDir)"
+                                OutputFileName="$(ProjectPriFullPath)"
+                                LanguageQualifiersPath="$(_LanguageQualifiersPath)"
+                                AdditionalMakepriExeParameters="$(AppxGenerateProjectPriFileAdditionalMakepriExeParameters)"
+                                />
+        
+        <Message Text="$(MSBuildProjectName) -> $(ProjectPriFileName)" />
+
+    </Target>
+
+    <!-- Add FileReads and FileWrites done during generation of project PRI file. -->
+    <Target Name="_AddFileReadsAndFileWritesForProjectPri">
+
+        <ItemGroup>
+            <FileReads Include="@(_GenerateProjectPriFileCoreInput)" />
+        </ItemGroup>
+
+        <ItemGroup>
+            <FileWrites Include="$(_PriConfigXmlPath)" />
+            <FileWrites Include="$(_LayoutResfilesPath)" />
+            <FileWrites Include="$(_ResourcesResfilesPath)" />
+            <FileWrites Include="$(_PriResfilesPath)" />
+            <FileWrites Include="$(ProjectPriFullPath)" />
+            <FileWrites Include="$(_LanguageQualifiersPath)" />
+        </ItemGroup>
+
+    </Target>
+
+    <!--Create ProjectPriFile item. -->
+    <Target Name="_CreateProjectPriFileItem"
+            Condition="'$(AppxPackage)' == 'true'"
+            >
+
+        <ItemGroup>
+            <ProjectPriFile Include="$(ProjectPriFullPath)">
+                <TargetPath>$(ProjectPriFileName)</TargetPath>
+            </ProjectPriFile>
+        </ItemGroup>
+
+    </Target>
+
+    <!-- Expand content of PRI files. -->
+    <Target Name="_ExpandPriFiles">
+
+        <ItemGroup>
+            <_PriFilesToExpand Include="@(_PriFilesFromPayload)"
+                               Condition="'%(OutputGroup)' != 'ProjectPriFile'
+                                      and '%(OutputGroup)' != 'SDKRedistOutputGroup'"
+                               />
+        </ItemGroup>
+
+        <GetMakepriExeFullPath MakePriExeFullPath="$(MakePriExeFullPath)"
+                               Condition="'$(_ActualMakePriExeFullPath)' == ''"
+                               >
+            <Output TaskParameter="ActualMakePriExeFullPath" PropertyName="_ActualMakePriExeFullPath" />
+        </GetMakepriExeFullPath>
+
+        <ExpandPriContent Inputs="@(_PriFilesToExpand)"
+                          MakePriExeFullPath="$(_ActualMakePriExeFullPath)"
+                          IntermediateDirectory="$(IntermediateOutputPath)"
+                          AdditionalMakepriExeParameters="$(AppxExpandPriContentAdditionalMakepriExeParameters)"
+                          >
+            <Output TaskParameter="Expanded" ItemName="_ExpandedPriPayload" />
+            <Output TaskParameter="IntermediateFileWrites" ItemName="FileWrites" />
+        </ExpandPriContent>
+
+    </Target>
+
+    <!-- Override to specify actions to happen after generating project PRI file. -->
+    <Target Name="AfterGenerateProjectPriFile" />
+
+    <PropertyGroup>
+        <_ProjectArchitecturesFilePath>$(IntermediateOutputPath)ProjectArchitectures.txt</_ProjectArchitecturesFilePath>
+    </PropertyGroup>
+
+    <!-- ================================================================================================== -->
+    <!-- Computes Appx package payload that will be included in the appx package (excluding Appx manifest). -->
+    <!-- ================================================================================================== -->
+
+    <Target Name="_ComputeAppxPackagePayload"
+            Condition="'$(AppxPackage)' == 'true'"
+            >
+
+        <ItemGroup>
+            <_UnfilteredAppxPackagePayload Include="@(PackagingOutputs)" Condition="'%(Extension)' != '.pri' AND '%(OutputGroup)' != 'GetResolvedSDKReferences' AND '%(OutputGroup)' != '_GetProjectArchitecture'"/>
+            <_UnfilteredAppxPackagePayload Include="@(_ExpandedPriPayload)" />
+            <_UnfilteredAppxPackagePayload Include="@(ProjectPriFile)" />
+        </ItemGroup>
+
+        <RemoveDuplicatePayload Inputs="@(_UnfilteredAppxPackagePayload)">
+            <Output TaskParameter="Filtered" ItemName="AppxPackagePayload" />
+        </RemoveDuplicatePayload>
+
+        <ItemGroup>
+            <PDBPayload Include="@(AppxPackagePayload)" Condition="'%(Extension)'=='.pdb'" />
+        </ItemGroup>
+
+        <!-- 
+        If packaging outputs contain file named AppxManifest.xml, 
+        this is override manifest and it is handled elsewhere.
+        -->
+        <ItemGroup>
+            <AppxPackagePayload Remove="@(AppxPackagePayload)" Condition="'%(TargetPath)' == 'AppxManifest.xml'" />
+        </ItemGroup>
+
+        <ItemGroup>
+            <_ProjectArchitectureFromPayload Include="@(PackagingOutputs)"
+                                             Condition="'%(PackagingOutputs.OutputGroup)' == '_GetProjectArchitecture'
+                                                    AND '%(PackagingOutputs.MSBuildSourceProjectFile)' != ''"
+                                             />
+            <_ProjectArchitectureFromPayload Include="@(PackagingOutputs)"
+                                             Condition="'%(PackagingOutputs.OutputGroup)' == '_GetProjectArchitecture'
+                                                    AND '%(PackagingOutputs.MSBuildSourceProjectFile)' == ''"
+                                             >
+                <MSBuildSourceProjectFile>$(MSBuildProjectFullPath)</MSBuildSourceProjectFile>
+            </_ProjectArchitectureFromPayload>
+        </ItemGroup>
+
+        <GenerateProjectArchitecturesFile
+            ProjectArchitectures="@(_ProjectArchitectureFromPayload)"
+            ProjectArchitecturesFilePath="$(_ProjectArchitecturesFilePath)"
+            />
+
+        <ItemGroup>
+            <FileWrites Include="$(_ProjectArchitecturesFilePath)" />
+        </ItemGroup>
+
+    </Target>
+
+    <!-- ==================================================================================== -->
+    <!-- Generating Appx manifest.                                                            -->
+    <!-- Happens after generating PRI file, for every project which can be packaged/deployed. -->
+    <!-- ==================================================================================== -->
+
+    <PropertyGroup>
+        <_GenerateAppxManifestDependsOn>
+            $(_GenerateAppxManifestDependsOn);
+            BeforeGenerateAppxManifest;
+            _GetRecursiveResolvedSDKReferences;
+            _CopyCurrentProjectAppxManifestOverride;
+            _CalculateInputsForGenerateCurrentProjectAppxManifest;
+            _GenerateCurrentProjectAppxManifest;
+            _CreateFinalAppxManifestItem;
+            _FindStoreAssociationFile;
+            _ValidateAppxManifest;
+            AfterGenerateAppxManifest
+        </_GenerateAppxManifestDependsOn>
+    </PropertyGroup>
+
+    <Target Name="_GenerateAppxManifest"
+            Condition="'$(AppxPackage)' == 'true'"
+            DependsOnTargets="$(_GenerateAppxManifestDependsOn)"
+            />
+
+    <!-- Override to specify actions to happen before generating Appx manifest. -->
+    <Target Name="BeforeGenerateAppxManifest" />
+
+    <!-- Extract SDK references from the payload and filters out duplicates. -->
+    <Target Name="_GetRecursiveResolvedSDKReferences">
+
+        <ItemGroup>
+            <_UnfilteredRecursiveResolvedSDKReference Include="@(PackagingOutputs)"
+                                                      Condition="'%(OutputGroup)' == 'GetResolvedSDKReferences'" />
+        </ItemGroup>
+
+        <RemoveDuplicateSDKReferences Inputs="@(_UnfilteredRecursiveResolvedSDKReference)">
+            <Output TaskParameter="Filtered" ItemName="RecursiveResolvedSDKReference" />
+        </RemoveDuplicateSDKReferences>
+
+        <ItemGroup>
+            <FrameworkSdkReference Include="@(RecursiveResolvedSDKReference)"
+                                   Condition="'%(RecursiveResolvedSDKReference.FrameworkIdentity)' != ''"
+                             />
+        </ItemGroup>
+
+        <ItemGroup>
+            <NonFrameworkSdkReference Include="@(RecursiveResolvedSDKReference)"
+                                      Condition="'%(RecursiveResolvedSDKReference.FrameworkIdentity)' == ''"
+                                />
+        </ItemGroup>
+
+        <!-- Add non-framework SDK versions to manifest build metadata. -->
+        <ItemGroup>
+            <AppxManifestMetadata Include="@(NonFrameworkSdkReference)">
+                <Name>%(NonFrameworkSdkReference.SimpleName)</Name>
+                <Version>%(NonFrameworkSdkReference.Version)</Version>
+            </AppxManifestMetadata>
+        </ItemGroup>
+        
+        <GetFrameworkSdkPackages FrameworkSdkReferences="@(FrameworkSdkReference)">
+            <Output TaskParameter="FrameworkSdkPackages" ItemName="FrameworkSdkPackage" />
+        </GetFrameworkSdkPackages>
+
+    </Target>
+
+    <!-- Copy overriden AppxManifest.xml to final location. -->
+    <!-- Inputs: [CustomAppxManifest] Name of the manifest file override. -->
+    <!-- Outputs: [FinalAppxManifest] Final manifest file which will be included in the appx package. -->
+    <Target Name="_CopyCurrentProjectAppxManifestOverride"
+            Condition="Exists(@(CustomAppxManifest))"
+            Inputs="@(CustomAppxManifest)"
+            Outputs="$(FinalAppxManifestName)">
+
+        <Copy UseHardlinksIfPossible="$(AppxUseHardlinksIfPossible)"
+              SkipUnchangedFiles="$(AppxSkipUnchangedFiles)"
+              SourceFiles="@(CustomAppxManifest)"
+              DestinationFiles="$(FinalAppxManifestName)"
+              />
+
+    </Target>
+
+    <!-- Calculates list of input for _GenerateCurrentProjectAppxManifest target. -->
+    <Target Name="_CalculateInputsForGenerateCurrentProjectAppxManifest">
+
+        <ItemGroup Condition="'$(AppxHarvestWinmdRegistration)' == 'true'">
+            <_WinmdFilesFromWinmdArtifacts Include="@(PackagingOutputs)"
+                                         Condition="'%(PackagingOutputs.Extension)' == '.winmd' 
+                                                and '%(PackagingOutputs.OutputGroup)' == 'CopyWinmdArtifactsOutputGroup'
+                                                and '%(PackagingOutputs.ProjectName)' != '$(ProjectName)'" />
+            <_WinmdFilesFromReferences Include="@(PackagingOutputs)"
+                                     Condition="'%(PackagingOutputs.Extension)' == '.winmd' 
+                                            and '%(PackagingOutputs.OutputGroup)' == 'CopyLocalFilesOutputGroup'" />
+            <_WinmdFilesFromOtherGroups Include="@(PackagingOutputs)"
+                                      Condition="'%(PackagingOutputs.Extension)' == '.winmd' 
+                                             and '%(PackagingOutputs.OutputGroup)' != 'CopyWinmdArtifactsOutputGroup'
+                                             and '%(PackagingOutputs.OutputGroup)' != 'CopyLocalFilesOutputGroup'
+                                             and '%(PackagingOutputs.ResolvedFrom)' != 'GetSDKReferenceFiles'" />
+            <_WinmdFilesFromSDKs Include="@(PackagingOutputs)"
+                               Condition="'%(PackagingOutputs.Extension)' == '.winmd'
+                                      and '%(PackagingOutputs.ResolvedFrom)' == 'GetSDKReferenceFiles'" />
+        </ItemGroup>
+
+        <RemoveDuplicatePayload Inputs="@(_WinmdFilesFromWinmdArtifacts)">
+            <Output TaskParameter="Filtered" ItemName="_AppxWinmdFilesToHarvest" />
+        </RemoveDuplicatePayload>
+
+        <RemoveDuplicatePayload Inputs="@(_WinmdFilesFromReferences)">
+            <Output TaskParameter="Filtered" ItemName="_AppxWinmdFilesToHarvest" />
+        </RemoveDuplicatePayload>
+
+        <RemoveDuplicatePayload Inputs="@(_WinmdFilesFromOtherGroups)">
+            <Output TaskParameter="Filtered" ItemName="_AppxWinmdFilesToHarvest" />
+        </RemoveDuplicatePayload>
+
+        <RemoveDuplicatePayload Inputs="@(_WinmdFilesFromSDKs)">
+            <Output TaskParameter="Filtered" ItemName="_AppxSDKWinmdFilesForHarvest" />
+        </RemoveDuplicatePayload>
+
+
+        <ItemGroup>
+            <_GenerateCurrentProjectAppxManifestInput Include="@(AppxManifest)" />
+            <_GenerateCurrentProjectAppxManifestInput Include="$(AppxManifestSchema)" />
+            <_GenerateCurrentProjectAppxManifestInput Include="$(PackageCertificateKeyFile)" />
+            <_GenerateCurrentProjectAppxManifestInput Include="@(_AppxWinmdFilesToHarvest)" />
+            <_GenerateCurrentProjectAppxManifestInput Include="@(_AppxSDKWinmdFilesForHarvest)" />
+            <_GenerateCurrentProjectAppxManifestInput Include="$(_LanguageQualifiersPath)" />
+        </ItemGroup>
+
+    </Target>
+
+    <!-- Generates a final AppxManifest.xml that will be included in the appx package. -->
+    <!-- The generation includes pre-processing of any tokens in the input manifest file to produce a valid appx manifest file. -->
+    <!-- Input: [AppxManifest] Name of the manifest file template. -->
+    <!-- Output: [FinalAppxManifest] Final manifest file which will be included in the appx package. -->
+    <Target Name="_GenerateCurrentProjectAppxManifest"
+            Condition="Exists(@(AppxManifest))"
+            Inputs="$(MSBuildAllProjects);@(_GenerateCurrentProjectAppxManifestInput)"
+            Outputs="$(FinalAppxManifestName)">
+
+        <GetMakepriExeFullPath MakePriExeFullPath="$(MakePriExeFullPath)"
+                               Condition="'$(_ActualMakePriExeFullPath)' == ''"
+                               >
+            <Output TaskParameter="ActualMakePriExeFullPath" PropertyName="_ActualMakePriExeFullPath" />
+        </GetMakepriExeFullPath>
+
+        <ItemGroup>
+            <AppxManifestMetadata Include="$(_ActualMakePriExeFullPath)" />
+        </ItemGroup>
+
+        <GenerateAppxManifest AppxManifestInput="@(AppxManifest)"
+                              AppxManifestOutput="$(FinalAppxManifestName)"
+                              ApplicationExecutableName="$(TargetName)"
+                              FrameworkSdkReferences="@(FrameworkSdkReference)"
+                              NonFrameworkSdkReferences="@(NonFrameworkSdkReference)"
+                              CertificateThumbprint="$(PackageCertificateThumbprint)"
+                              CertificateFile="$(PackageCertificateKeyFile)"
+                              DefaultResourceLanguage="$(DefaultResourceLanguage)"
+                              LanguageQualifiersPath="$(_LanguageQualifiersPath)"
+                              PackageArchitecture="$(PackageArchitecture)"
+                              SDKWinmdFiles="@(_AppxSDKWinmdFilesForHarvest)"
+                              WinmdFiles="@(_AppxWinmdFilesToHarvest)"
+                              ManagedWinmdInprocImplementation="$(ManagedWinmdInprocImplementation)"
+                              OSMinVersion="$(AppxOSMinVersion)"
+                              OSMaxVersionTested="$(AppxOSMaxVersionTested)"
+                              OSMinVersionReplaceManifestVersion="$(AppxOSMinVersionReplaceManifestVersion)"
+                              OSMaxVersionTestedReplaceManifestVersion="$(AppxOSMaxVersionTestedReplaceManifestVersion)"
+                              EnableSigningChecks="$(EnableSigningChecks)"
+                              ManifestMetadata="@(AppxManifestMetadata)"
+                              />
+
+        <Message Importance="low" Text="@(AppxManifest) -> $(FinalAppxManifestName)" />
+
+    </Target>
+
+    <!-- In order for incremental build and clean to work correctly,       -->
+    <!-- we are creating build item @(FinalAppxManifest) and @(FileWrites) -->
+    <!-- in the target which always executes.                              -->
+    <Target Name="_CreateFinalAppxManifestItem">
+
+        <ItemGroup>
+            <FinalAppxManifest Include="$(FinalAppxManifestName)" />
+        </ItemGroup>
+
+        <ItemGroup>
+            <FileReads Include="@(CustomAppxManifest)"/>
+            <FileReads Include="@(_GenerateCurrentProjectAppxManifestInput)"/>
+        </ItemGroup>
+
+        <ItemGroup>
+            <FileWrites Include="@(FinalAppxManifest)"/>
+        </ItemGroup>
+
+    </Target>
+
+    <!-- Finds store association file. -->
+    <Target Name="_FindStoreAssociationFile">
+
+        <ItemGroup Condition="'@(StoreAssociationFile)' == ''">
+            <StoreAssociationFile Include="@(None)" Condition="'%(Identity)' == 'Package.StoreAssociation.xml'" />
+            <None Remove="@(None)" Condition="'%(Identity)' == 'Package.StoreAssociation.xml'" />
+        </ItemGroup>
+
+    </Target>
+
+    <!-- Validates final Appx manifest. -->
+    <Target Name="_ValidateAppxManifest"
+            Condition="'$(AppxValidateAppxManifest)' == 'true'"
+            >
+
+        <ValidateAppxManifest Input="@(FinalAppxManifest)"
+                              SourceAppxManifest="@(SourceAppxManifest)"
+                              AppxManifestSchema="$(AppxManifestSchema)"
+                              StoreAssociationFile="@(StoreAssociationFile)"
+                              OSMinVersion="$(AppxOSMinVersion)"
+                              OSMaxVersionTested="$(AppxOSMaxVersionTested)"
+                              ValidateWinmds="$(_CustomAppxManifestUsed)"
+                              StrictManifestValidationEnabled="$(AppxStrictManifestValidationEnabled)"
+                              WinmdFiles="@(_AppxWinmdFilesToHarvest)"
+                              SDKWinmdFiles="@(_AppxSDKWinmdFilesForHarvest)"
+                              NonFrameworkSdkReferences="@(NonFrameworkSdkReference)"
+                              ManagedWinmdInprocImplementation="$(ManagedWinmdInprocImplementation)"
+                              />
+
+    </Target>
+
+    <!-- Override to specify actions to happen after generating Appx manifest. -->
+    <Target Name="AfterGenerateAppxManifest" />
+
+    <!-- ========================================================================================= -->
+    <!-- Generating Appx package recipe.                                                           -->
+    <!-- Happens after generating Appx manifest, for every project which can be packaged/deployed. -->
+    <!-- ========================================================================================= -->
+
+    <!-- Ensure Fast UpToDate check also consider the .appxrecipe file as an output -->
+    <ItemGroup Condition="'$(AppxPackage)' == 'true'">
+        <UpToDateCheckOutput Include="$(AppxPackageRecipe)" />
+    </ItemGroup>
+
+
+    <PropertyGroup>
+        <_GenerateAppxPackageRecipeDependsOn>
+            $(_GenerateAppxPackageRecipeDependsOn);
+            _CalculateInputsForGenerateAppxPackageRecipe;
+            _GenerateAppxPackageRecipeFile;
+            _FileReadsAndWritesForGenerateAppxPackageRecipe
+        </_GenerateAppxPackageRecipeDependsOn>
+    </PropertyGroup>
+
+    <Target Name="_GenerateAppxPackageRecipe"
+            Condition="'$(AppxPackage)' == 'true'"
+            DependsOnTargets="$(_GenerateAppxPackageRecipeDependsOn)"
+            />
+
+    <!-- Creates the recipe file for the the appx package -->
+    <Target Name="_CalculateInputsForGenerateAppxPackageRecipe">
+        <ItemGroup>
+            <_GenerateAppxPackageRecipeInput Include="@(FinalAppxManifest)" />
+            <_GenerateAppxPackageRecipeInput Include="@(AppxPackagePayload)" />
+            <_GenerateAppxPackageRecipeInput Include="$(_ProjectArchitecturesFilePath)" />
+        </ItemGroup>
+    </Target>
+
+    <!-- Creates the recipe file for the the appx package -->
+    <Target Name="_GenerateAppxPackageRecipeFile"
+            Inputs="$(MSBuildAllProjects);@(_GenerateAppxPackageRecipeInput)"
+            Outputs="$(AppxPackageRecipe)">
+
+        <GenerateAppxPackageRecipe
+            AppxManifestXml="%(FinalAppxManifest.FullPath)"
+            SourceAppxManifest="@(SourceAppxManifest)"
+            SolutionConfiguration="$(Configuration)|$(Platform)"
+            PayloadFiles="@(AppxPackagePayload)"
+            FrameworkSdkPackages="@(FrameworkSdkPackage)"
+            RecipeFile="$(AppxPackageRecipe)"
+            SystemBinaries="@(AppxSystemBinary)"
+            ReservedFileNames="@(AppxReservedFileName)"
+            QueryNamespacePrefix="$(AppxManifestQueryNamespacePrefix)"
+            ManifestFileNameQueries="@(AppxManifestFileNameQuery)"
+            ManifestImageFileNameQueries="@(AppxManifestImageFileNameQuery)"
+            PackageArchitecture="$(PackageArchitecture)"
+            ProjectDir="$(ProjectDir)"
+            />
+
+        <Message Importance="low" Text="Manifest: %(FinalAppxManifest.Identity)" />
+        <Message Importance="low" Text="Payload: %(AppxPackagePayload.TargetPath) from %(AppxPackagePayload.FullPath)" />
+        <Message Importance="low" Text="SDK reference: %(RecursiveResolvedSDKReference.TargetPath) from %(RecursiveResolvedSDKReference.FullPath)" />
+        <Message Importance="low" Text="$(MSBuildProjectName) -> $(AppxPackageRecipe)" />
+
+    </Target>
+
+    <!-- Add FileReads and FileWrites done during generation of package recipe file. -->
+    <Target Name="_FileReadsAndWritesForGenerateAppxPackageRecipe">
+
+        <ItemGroup>
+            <FileReads Include="@(_GenerateAppxPackageRecipeInput)" />
+        </ItemGroup>
+
+        <ItemGroup>
+            <FileWrites Include="$(AppxPackageRecipe)"/>
+        </ItemGroup>
+
+    </Target>
+
+    <!-- ==================================================================================== -->
+    <!-- Creates a .tlog file from the FileReads items so that up-to-date check works in C++. -->
+    <!-- ==================================================================================== -->
+    <Target Name="_AppendToReadTlogFile"
+            Condition="'$(Language)' == 'C++' and '@(FileReads)' != ''">
+
+        <WriteLinesToFile
+            File="$(TLogLocation)$(ProjectName).read.1.tlog"
+            Lines="^$(ProjectPath);@(FileReads-&gt;'%(Fullpath)')" />
+    </Target>
+
+    <!-- ============================================================================ -->
+    <!-- Creates a .tlog file from the FileWrites items so Clean target works in C++. -->
+    <!-- ============================================================================ -->
+    <Target Name="_AppendToWriteTlogFile"
+            Condition="'$(Language)' == 'C++' and '@(FileWrites)' != ''">
+        <WriteLinesToFile
+            File="$(TLogLocation)$(ProjectName).write.1.tlog"
+            Lines="^$(ProjectPath);@(FileWrites-&gt;'%(Fullpath)')" />
+    </Target>
+
+    <!-- =============================== -->
+    <!-- Generating Appx package.        -->
+    <!-- Happens when invoked explictly. -->
+    <!-- =============================== -->
+
+    <PropertyGroup>
+        <_GenerateAppxPackageBaseDependsOn>
+            _ComputeAppxPackageOutput;
+            _ExtractHashUri;
+            _ValidateAppxPackage;
+            _GenerateAppxPackageFile;
+            _GenerateAppxSymbolPackage;
+            _SignAppxPackage;
+            _CreateAppStoreContainer;
+            _CreateTestLayout
+        </_GenerateAppxPackageBaseDependsOn>
+
+        <_GenerateAppxPackageDependsOn Condition="'$(GenerateAppxPackageOnBuild)' == 'true'">
+            $(_GenerateAppxPackageDependsOn);
+            $(_GenerateAppxPackageBaseDependsOn);
+        </_GenerateAppxPackageDependsOn>
+
+        <_GenerateAppxPackageDependsOn Condition="'$(GenerateAppxPackageOnBuild)' != 'true'">
+            $(_GenerateAppxPackageDependsOn);
+            Build;
+            $(_GenerateAppxPackageBaseDependsOn);
+        </_GenerateAppxPackageDependsOn>
+    </PropertyGroup>
+
+    <Target Name="_GenerateAppxPackage"
+            Condition="'$(AppxPackage)' == 'true'"
+            DependsOnTargets="$(_GenerateAppxPackageDependsOn)"
+            />
+
+    <!-- Computes Appx package output (file name and directory). -->
+    <Target Name="_ComputeAppxPackageOutput">
+
+        <PropertyGroup Condition="'$(AppxPackageName)' == ''">
+            <_AppxPackageConfiguration Condition="'$(Configuration)' != 'Release'">_$(Configuration)</_AppxPackageConfiguration>
+            <AppxPackageName>$(ProjectName)_$(AppxManifestIdentityVersion)_$(Platform)$(_AppxPackageConfiguration)</AppxPackageName>
+        </PropertyGroup>
+
+        <PropertyGroup Condition="'$(AppxStoreContainer)' == ''">
+            <AppxStoreContainer>$(AppxPackageDir)$(AppxPackageName).appxupload</AppxStoreContainer>
+        </PropertyGroup>
+
+        <PropertyGroup Condition="'$(AppxPackageTestDir)' == ''">
+            <AppxPackageTestDir>$(AppxPackageDir)$(AppxPackageName)_Test\</AppxPackageTestDir>
+        </PropertyGroup>
+
+        <PropertyGroup Condition="'$(AppxPackageOutput)' == ''">
+            <AppxPackageOutput>$(AppxPackageTestDir)$(AppxPackageName).appx</AppxPackageOutput>
+        </PropertyGroup>
+
+        <PropertyGroup Condition="'$(AppxSymbolPackageOutput)' == ''">
+            <AppxSymbolPackageOutput>$(AppxPackageTestDir)$(AppxPackageName).appxsym</AppxSymbolPackageOutput>
+        </PropertyGroup>
+
+    </Target>
+
+    <!-- Extracts hash URI from store association file. -->
+    <Target Name="_ExtractHashUri"
+            Condition="'$(AppxPackageValidationEnabled)' == 'true' and '@(StoreAssociationFile)' != ''">
+
+        <ExtractHashUri StoreAssociationFile="@(StoreAssociationFile)">
+            <Output TaskParameter="HashUri" PropertyName="_HashUri" />
+        </ExtractHashUri>
+
+    </Target>
+
+    <!-- Executes pre-upload validation of the appx package. -->
+    <Target Name="_ValidateAppxPackage"
+            Condition="'$(AppxPackageValidationEnabled)' == 'true'">
+
+        <ValidateAppxPackage
+            SourceAppxManifest="@(SourceAppxManifest)"
+            AppxManifest="@(FinalAppxManifest)"
+            StoreAssociationFile="@(StoreAssociationFile)"
+            PackageArchitecture="$(PackageArchitecture)"
+            AppxPackagePayload="@(AppxPackagePayload)"
+            QueryNamespacePrefix="$(AppxManifestQueryNamespacePrefix)"
+            ManifestImageFileNameQueries="@(AppxManifestImageFileNameQuery)"
+            ResolvedSDKReferences="@(RecursiveResolvedSDKReference)"
+            AllowDebugFrameworkReferencesInManifest="$(AppxPackageAllowDebugFrameworkReferencesInManifest)"
+            ProjectDir="$(ProjectDir)"
+            />
+
+    </Target>
+
+    <!-- The following target the appx package. -->
+    <Target Name="_GenerateAppxPackageFile"
+            Inputs="$(MSBuildAllProjects);@(FinalAppxManifest);@(AppxPackagePayload)"
+            Outputs="$(AppxPackageOutput)">
+
+        <ItemGroup Condition="'$(AppxPackageIncludePrivateSymbols)' != 'true'">
+            <AppxPackagePayload Remove="@(AppxPackagePayload)" Condition="'%(Extension)' == '.pdb'" />
+        </ItemGroup>
+
+        <PropertyGroup Condition="'$(_HashUri)' == ''">
+            <_HashUri>$(AppxDefaultHashUri)</_HashUri>
+        </PropertyGroup>
+
+        <GenerateAppxPackage AppxManifestXml="@(FinalAppxManifest)"
+                             SourceFiles="@(AppxPackagePayload)"
+                             HashUri="$(_HashUri)"
+                             OutputPath="$(AppxPackageOutput)">
+            <Output TaskParameter="OutputPath" PropertyName="FinalAppxPackage" />
+            <Output TaskParameter="OutputPath" ItemName="FinalAppxPackageItem" />
+        </GenerateAppxPackage>
+
+        <ItemGroup>
+            <FileWrites Include="@(FinalAppxPackageItem)" />
+        </ItemGroup>
+
+        <WriteLinesToFile File="$(AppxPackagingInfoFile)"
+                          Overwrite="true"
+                          Lines="$(FinalAppxPackage)" />
+
+        <ItemGroup>
+            <FileWrites Include="$(AppxPackagingInfoFile)" />
+        </ItemGroup>
+
+        <Message Importance="high" Text="$(MSBuildProjectName) -> $(FinalAppxPackage)" />
+
+    </Target>
+
+    <!-- The following target the appx package. -->
+    <Target Name="_GenerateAppxSymbolPackage"
+            Condition="'$(AppxSymbolPackageEnabled)' == 'true' and '@(PDBPayload)' != ''"
+            Inputs="$(MSBuildAllProjects);@(PDBPayload);@(FinalAppxManifest)"
+            Outputs="$(AppxSymbolPackageOutput)">
+
+        <GenerateAppxSymbolPackage PdbCopyExeFullPath="$(PdbCopyExeFullPath)"
+                                   PDBFiles="@(PDBPayload)"
+                                   ProjectName="$(MSBuildProjectName)"
+                                   IntermediateDirectory="$(IntermediateOutputPath)"
+                                   AppxSymbolPackageOutput="$(AppxSymbolPackageOutput)">
+            <Output TaskParameter="StrippedPdbs" ItemName="StrippedPDBFiles" />
+        </GenerateAppxSymbolPackage>
+
+        <ItemGroup>
+            <FinalAppxSymbolPackageItem Include="$(AppxSymbolPackageOutput)" />
+        </ItemGroup>
+
+        <ItemGroup>
+            <FileWrites Include="@(FinalAppxSymbolPackageItem)" />
+            <FileWrites Include="@(StrippedPDBFiles)" />
+        </ItemGroup>
+
+        <Message Importance="low" Text="$(MSBuildProjectName) -> $(AppxSymbolPackageOutput)" />
+
+    </Target>
+
+    <!-- Signs appx package -->
+    <Target Name="_SignAppxPackage"
+            Condition="'$(AppxPackageSigningEnabled)' == 'true'">
+
+        <PropertyGroup Condition="'$(_HashUri)' == ''">
+            <_HashUri>$(AppxDefaultHashUri)</_HashUri>
+        </PropertyGroup>
+
+        <SignAppxPackage AppxPackageToSign="@(FinalAppxPackageItem)"
+                         CertificateThumbprint="$(PackageCertificateThumbprint)"
+                         CertificateFile="$(PackageCertificateKeyFile)"
+                         HashUri="$(_HashUri)"
+                         EnableSigningChecks="$(EnableSigningChecks)"
+                         >
+            <Output TaskParameter="ResolvedThumbprint" PropertyName="ResolvedThumbPrint"/>
+            <Output TaskParameter="AppxPackagePublicKeyFile" PropertyName="AppxPackagePublicKeyFile" />
+        </SignAppxPackage>
+
+        <Message Importance="low" Text="ResolvedThumbprint -> $(ResolvedThumbprint)" />
+
+    </Target>
+
+    <!-- Creates a test layout for testing of the appx package. -->
+    <Target Name="_CreateTestLayout"
+            Condition="'$(AppxTestLayoutEnabled)' == 'true'">
+
+        <ItemGroup>
+            <_TestLayoutSourceFiles Condition="'%(Architecture)' == 'neutral'" Include="@(FrameworkSdkPackage)" />
+            <_TestLayoutTargetFiles Condition="'%(Architecture)' == 'neutral'" Include="@(FrameworkSdkPackage->'$(AppxPackageTestDir)Dependencies\%(FileName)%(Extension)')" />
+        </ItemGroup>
+
+        <ItemGroup>
+            <_TestLayoutSourceFiles Condition="'%(Architecture)' != 'neutral'" Include="@(FrameworkSdkPackage)" />
+            <_TestLayoutTargetFiles Condition="'%(Architecture)' != 'neutral'" Include="@(FrameworkSdkPackage->'$(AppxPackageTestDir)Dependencies\%(Architecture)\%(FileName)%(Extension)')" />
+        </ItemGroup>
+        
+        <Message Importance="low" Text="Test Layout: %(_TestLayoutTargetFiles.FullPath)" />
+
+        <Copy
+            UseHardlinksIfPossible="$(AppxUseHardlinksIfPossible)"
+            SkipUnchangedFiles="$(AppxSkipUnchangedFiles)"
+            SourceFiles="@(_TestLayoutSourceFiles)"
+            DestinationFiles="@(_TestLayoutTargetFiles)"
+            />
+
+        <ItemGroup>
+            <FileWrites Include="@(_TestLayoutTargetFiles)"/>
+        </ItemGroup>
+
+        <ItemGroup>
+            <_PowerShellScriptsSource Include="$(AppxMSBuildToolsPath)Add-AppDevPackage.ps1" />
+            <_PowerShellScriptsSource Include="$(AppxMSBuildToolsPath)**\Add-AppDevPackage.psd1" />
+        </ItemGroup>
+
+        <ItemGroup>
+            <_PowerShellScriptsDestination Include="@(_PowerShellScriptsSource->'$(AppxPackageTestDir)%(RecursiveDir)%(FileName)%(Extension)')" />
+        </ItemGroup>
+
+        <!--Copy install scripts to app package location.-->
+        <Copy
+          UseHardlinksIfPossible="$(AppxUseHardlinksIfPossible)"
+          SkipUnchangedFiles="true"
+          SourceFiles="@(_PowerShellScriptsSource)"
+          DestinationFiles="@(_PowerShellScriptsDestination)"
+          ContinueOnError="true" />
+
+        <ItemGroup>
+            <FileWrites Include="@(_PowerShellScriptsDestination)" />
+        </ItemGroup>
+
+    </Target>
+
+    <!-- Creates .appxupload file containing .appx and optional .appxsym, -->
+    <!-- which is used for uploading to Windows App Store.                -->
+    <Target Name="_CreateAppStoreContainer"
+            Inputs="@(FinalAppxPackageItem);@(FinalAppxSymbolPackageItem)"
+            Outputs="$(AppxStoreContainer)">
+
+        <ItemGroup>
+            <!-- create temp item just to use .FullPath -->
+            <_AppxStoreContainer Include="$(AppxStoreContainer)" />
+        </ItemGroup>
+
+        <CreateAppStoreContainer
+            Items="@(FinalAppxPackageItem);@(FinalAppxSymbolPackageItem)"
+            ProjectName="$(MSBuildProjectName)"
+            OutputPath="%(_AppxStoreContainer.FullPath)"
+            />
+
+        <ItemGroup>
+            <FileWrites Include="$(AppxStoreContainer)"/>
+        </ItemGroup>
+
+    </Target>
+
+    <!-- =============================== -->
+    <!-- Clean/Rebuild support.          -->
+    <!-- =============================== -->
+
+    <PropertyGroup>
+        <_CleanAppxPackageDependsOn>
+            $(_CleanAppxPackageDependsOn);
+        </_CleanAppxPackageDependsOn>
+        <_CleanAppxPackageDependsOn Condition=" '$(GenerateAppxPackageOnBuild)' == 'true' ">
+            $(_CleanAppxPackageDependsOn);
+            _ValidatePresenceOfAppxManifestItems;
+            _ComputeAppxPackageOutput;
+        </_CleanAppxPackageDependsOn>
+    </PropertyGroup>
+
+    <!-- Cleans current project and any referenced projects' appx package artifacts. -->
+    <Target Name="_CleanAppxPackage"
+            Condition="'$(AppxPackage)' == 'true' and '$(GenerateAppxPackageOnBuild)' == 'true'"
+            DependsOnTargets="$(_CleanAppxPackageDependsOn)"
+            AfterTargets="Clean">
+
+        <!-- Delete package output. -->
+        <Delete Files="$(AppxStoreContainer)" ContinueOnError="true" TreatErrorsAsWarnings="true" />
+        <RemoveDir Directories="$(AppxPackageTestDir)" ContinueOnError="true" />
+
+    </Target>
+
+    <!-- Rebuild appx package target and entry point. -->
+    <Target Name="_RebuildAppxPackage"
+            Condition="'$(AppxPackage)' == 'true'"
+            DependsOnTargets="$(CleanPackageAction);$(PackageAction)"
+            />
+
+    <!-- ========================================== -->
+    <!-- Returns Architecture for given Platform.   -->
+    <!-- ========================================== -->
+
+    <Target Name="_GetProjectArchitecture"
+            Returns="@(ProjectArchitecture)">
+
+        <PropertyGroup>
+            <_ProjectArchitectureOutput>Invalid</_ProjectArchitectureOutput>
+            <_ProjectArchitectureOutput Condition="'$(Platform)' == 'AnyCPU'">neutral</_ProjectArchitectureOutput>
+            <_ProjectArchitectureOutput Condition="'$(Platform)' == 'x86'">x86</_ProjectArchitectureOutput>
+            <_ProjectArchitectureOutput Condition="'$(Platform)' == 'Win32'">x86</_ProjectArchitectureOutput>
+            <_ProjectArchitectureOutput Condition="'$(Platform)' == 'x64'">x64</_ProjectArchitectureOutput>
+            <_ProjectArchitectureOutput Condition="'$(Platform)' == 'arm'">arm</_ProjectArchitectureOutput>
+        </PropertyGroup>
+
+        <ItemGroup>
+            <ProjectArchitecture Include="$(_ProjectArchitectureOutput)" />
+        </ItemGroup>
+
+    </Target>
+
+    <!-- ========================================== -->
+    <!-- Getting all packaging outputs.             -->
+    <!-- Returns items that packaging targets need. -->
+    <!-- ========================================== -->
+
+    <PropertyGroup>
+        <GetPackagingOutputsDependsOn>
+            $(GetPackagingOutputsDependsOn);
+            AssignProjectConfiguration;
+            _SplitProjectReferencesByFileExistence
+        </GetPackagingOutputsDependsOn>
+    </PropertyGroup>
+
+    <Target Name="GetPackagingOutputs"
+            Returns="@(PackagingOutputs)"
+            DependsOnTargets="$(GetPackagingOutputsDependsOn)">
+
+        <CallTarget Targets="BuiltProjectOutputGroup" Condition="'$(IncludeBuiltProjectOutputGroup)' == 'true'">
+            <Output TaskParameter="TargetOutputs" ItemName="_BuiltProjectOutputGroupOutput"/>
+        </CallTarget>
+        <ItemGroup>
+            <_PackagingOutputsUnexpanded Include="%(_BuiltProjectOutputGroupOutput.FinalOutputPath)">
+                <TargetPath>%(_BuiltProjectOutputGroupOutput.TargetPath)</TargetPath>
+                <OutputGroup>BuiltProjectOutputGroup</OutputGroup>
+                <ProjectName>$(ProjectName)</ProjectName>
+            </_PackagingOutputsUnexpanded>
+        </ItemGroup>
+
+        <CallTarget Targets="DebugSymbolsProjectOutputGroup" Condition="'$(IncludeDebugSymbolsProjectOutputGroup)' == 'true'">
+            <Output TaskParameter="TargetOutputs" ItemName="_DebugSymbolsProjectOutputGroupOutput"/>
+        </CallTarget>
+        <ItemGroup>
+            <_PackagingOutputsUnexpanded Include="%(_DebugSymbolsProjectOutputGroupOutput.FinalOutputPath)">
+                <OutputGroup>DebugSymbolsProjectOutputGroup</OutputGroup>
+                <ProjectName>$(ProjectName)</ProjectName>
+            </_PackagingOutputsUnexpanded>
+        </ItemGroup>
+
+        <CallTarget Targets="DocumentationProjectOutputGroup" Condition="'$(IncludeDocumentationProjectOutputGroup)' == 'true'">
+            <Output TaskParameter="TargetOutputs" ItemName="_DocumentationProjectOutputGroupOutput"/>
+        </CallTarget>
+        <ItemGroup>
+            <_PackagingOutputsUnexpanded Include="@(_DocumentationProjectOutputGroupOutput)">
+                <OutputGroup>DocumentationProjectOutputGroup</OutputGroup>
+                <ProjectName>$(ProjectName)</ProjectName>
+            </_PackagingOutputsUnexpanded>
+        </ItemGroup>
+
+        <CallTarget Targets="SatelliteDllsProjectOutputGroup" Condition="'$(IncludeSatelliteDllsProjectOutputGroup)' == 'true'">
+            <Output TaskParameter="TargetOutputs" ItemName="_SatelliteDllsProjectOutputGroupOutput"/>
+        </CallTarget>
+        <ItemGroup>
+            <_PackagingOutputsUnexpanded Include="@(_SatelliteDllsProjectOutputGroupOutput)">
+                <OutputGroup>SatelliteDllsProjectOutputGroup</OutputGroup>
+                <ProjectName>$(ProjectName)</ProjectName>
+            </_PackagingOutputsUnexpanded>
+        </ItemGroup>
+
+        <CallTarget Targets="SourceFilesProjectOutputGroup" Condition="'$(IncludeSourceFilesProjectOutputGroup)' == 'true'">
+            <Output TaskParameter="TargetOutputs" ItemName="_SourceFilesProjectOutputGroupOutput"/>
+        </CallTarget>
+        <ItemGroup>
+            <_PackagingOutputsUnexpanded Include="@(_SourceFilesProjectOutputGroupOutput)">
+                <OutputGroup>SourceFilesProjectOutputGroup</OutputGroup>
+                <ProjectName>$(ProjectName)</ProjectName>
+            </_PackagingOutputsUnexpanded>
+        </ItemGroup>
+
+        <CallTarget Targets="SGenFilesOutputGroup" Condition="'$(IncludeSGenFilesOutputGroup)' == 'true'">
+            <Output TaskParameter="TargetOutputs" ItemName="_SGenFilesOutputGroupOutput"/>
+        </CallTarget>
+        <ItemGroup>
+            <_PackagingOutputsUnexpanded Include="@(_SGenFilesOutputGroupOutput)">
+                <OutputGroup>SGenFilesOutputGroup</OutputGroup>
+                <ProjectName>$(ProjectName)</ProjectName>
+            </_PackagingOutputsUnexpanded>
+        </ItemGroup>
+
+        <CallTarget Targets="CopyLocalFilesOutputGroup" Condition="'$(IncludeCopyLocalFilesOutputGroup)' == 'true'">
+            <Output TaskParameter="TargetOutputs" ItemName="_CopyLocalFilesOutputGroupOutput"/>
+        </CallTarget>
+        <ItemGroup>
+            <_PackagingOutputsUnexpanded Include="@(_CopyLocalFilesOutputGroupOutput)">
+                <OutputGroup>CopyLocalFilesOutputGroup</OutputGroup>
+                <ProjectName>$(ProjectName)</ProjectName>
+            </_PackagingOutputsUnexpanded>
+        </ItemGroup>
+
+        <CallTarget Targets="ComFilesOutputGroup" Condition="'$(IncludeComFilesOutputGroup)' == 'true'">
+            <Output TaskParameter="TargetOutputs" ItemName="_ComFilesOutputGroupOutput"/>
+        </CallTarget>
+        <ItemGroup>
+            <_PackagingOutputsUnexpanded Include="@(_ComFilesOutputGroupOutput)">
+                <OutputGroup>ComFilesOutputGroup</OutputGroup>
+                <ProjectName>$(ProjectName)</ProjectName>
+            </_PackagingOutputsUnexpanded>
+        </ItemGroup>
+
+        <CallTarget Targets="CopyWinmdArtifactsOutputGroup" Condition="'$(IncludeCopyWinmdArtifactsOutputGroup)' == 'true'">
+            <Output TaskParameter="TargetOutputs" ItemName="_CopyWinmdArtifactsOutputGroupOutput"/>
+        </CallTarget>
+        <ItemGroup>
+            <_PackagingOutputsUnexpanded Include="@(_CopyWinmdArtifactsOutputGroupOutput)">
+                <OutputGroup>CopyWinmdArtifactsOutputGroup</OutputGroup>
+                <ProjectName>$(ProjectName)</ProjectName>
+            </_PackagingOutputsUnexpanded>
+        </ItemGroup>
+
+        <CallTarget Targets="SDKRedistOutputGroup" Condition="'$(IncludeSDKRedistOutputGroup)' == 'true'">
+            <Output TaskParameter="TargetOutputs" ItemName="_SDKRedistOutputGroupOutput"/>
+        </CallTarget>
+        <ItemGroup>
+            <_PackagingOutputsUnexpanded Include="@(_SDKRedistOutputGroupOutput)">
+                <OutputGroup>SDKRedistOutputGroup</OutputGroup>
+                <ProjectName>$(ProjectName)</ProjectName>
+            </_PackagingOutputsUnexpanded>
+        </ItemGroup>
+
+        <CallTarget Targets="PriFilesOutputGroup" Condition="'$(IncludePriFilesOutputGroup)' == 'true'">
+            <Output TaskParameter="TargetOutputs" ItemName="_PriFilesOutputGroupOutput"/>
+        </CallTarget>
+        <ItemGroup>
+            <_PackagingOutputsUnexpanded Include="@(_PriFilesOutputGroupOutput)">
+                <OutputGroup>PriFilesOutputGroup</OutputGroup>
+                <ProjectName>$(ProjectName)</ProjectName>
+            </_PackagingOutputsUnexpanded>
+        </ItemGroup>
+
+        <CallTarget Targets="ContentFilesProjectOutputGroup" Condition="'$(IncludeContentFilesProjectOutputGroup)' == 'true'">
+            <Output TaskParameter="TargetOutputs" ItemName="_ContentFilesProjectOutputGroupOutput"/>
+        </CallTarget>
+        <ItemGroup>
+            <_PackagingOutputsUnexpanded Include="@(_ContentFilesProjectOutputGroupOutput)">
+                <OutputGroup>ContentFilesProjectOutputGroup</OutputGroup>
+                <ProjectName>$(ProjectName)</ProjectName>
+                <TargetPath Condition="'$(AppxPackage)' != 'true'">$(AppxPriInitialPath)\%(_ContentFilesProjectOutputGroupOutput.TargetPath)</TargetPath>
+            </_PackagingOutputsUnexpanded>
+        </ItemGroup>
+
+        <CallTarget Targets="CustomOutputGroupForPackaging" Condition="'$(IncludeCustomOutputGroupForPackaging)' == 'true'">
+            <Output TaskParameter="TargetOutputs" ItemName="_CustomOutputGroupForPackagingOutput"/>
+        </CallTarget>
+        <ItemGroup>
+            <_PackagingOutputsUnexpanded Include="@(_CustomOutputGroupForPackagingOutput)">
+                <OutputGroup>CustomOutputGroupForPackaging</OutputGroup>
+                <ProjectName>$(ProjectName)</ProjectName>
+                <TargetPath Condition="'$(AppxPackage)' != 'true'">$(AppxPriInitialPath)\%(_CustomOutputGroupForPackagingOutput.TargetPath)</TargetPath>
+            </_PackagingOutputsUnexpanded>
+        </ItemGroup>
+
+        <ExpandPayloadDirectories Inputs="@(_PackagingOutputsUnexpanded)">
+            <Output TaskParameter="Expanded" ItemName="_PackagingOutputsExpanded" />
+        </ExpandPayloadDirectories>
+
+        <CallTarget Targets="GetResolvedSDKReferences" Condition="'$(IncludeGetResolvedSDKReferences)' == 'true'">
+            <Output TaskParameter="TargetOutputs" ItemName="_GetResolvedSDKReferencesOutputWithoutMetadata"/>
+        </CallTarget>
+        <ItemGroup>
+            <_GetResolvedSDKReferencesOutput Include="@(_GetResolvedSDKReferencesOutputWithoutMetadata)">
+                <OutputGroup>GetResolvedSDKReferences</OutputGroup>
+                <ProjectName>$(ProjectName)</ProjectName>
+            </_GetResolvedSDKReferencesOutput>
+        </ItemGroup>
+
+        <CallTarget Targets="_GetProjectArchitecture">
+            <Output TaskParameter="TargetOutputs" ItemName="_ProjectArchitecture" />
+        </CallTarget>
+
+        <ItemGroup>
+            <_ProjectArchitectureItem Include="@(_ProjectArchitecture)">
+                <OutputGroup>_GetProjectArchitecture</OutputGroup>
+                <ProjectName>$(ProjectName)</ProjectName>
+            </_ProjectArchitectureItem>
+        </ItemGroup>
+
+        <ItemGroup>
+            <ProjectPriFile Include="$(ProjectPriFullPath)">
+                <OutputGroup>ProjectPriFile</OutputGroup>
+                <ProjectName>$(ProjectName)</ProjectName>
+                <TargetPath>$(ProjectPriFileName)</TargetPath>
+            </ProjectPriFile>
+        </ItemGroup>
+
+        <PropertyGroup>
+            <_ContinueOnError Condition="'$(BuildingProject)' == 'true'">true</_ContinueOnError>
+            <_ContinueOnError Condition="'$(BuildingProject)' != 'true'">false</_ContinueOnError>
+        </PropertyGroup>
+        
+        <MSBuild
+          Projects="@(ProjectReferenceWithConfiguration)"
+          Targets="GetPackagingOutputs"
+          BuildInParallel="$(BuildInParallel)"
+          Properties="%(ProjectReferenceWithConfiguration.SetConfiguration); %(ProjectReferenceWithConfiguration.SetPlatform)"
+          Condition="'@(ProjectReferenceWithConfiguration)' != ''
+                 and '%(ProjectReferenceWithConfiguration.BuildReference)' == 'true' 
+                 and '%(ProjectReferenceWithConfiguration.ReferenceOutputAssembly)' == 'true'"
+          ContinueOnError="$(_ContinueOnError)">
+            <Output TaskParameter="TargetOutputs" ItemName="_PackagingOutputsFromOtherProjects"/>
+        </MSBuild>
+
+        <ItemGroup>
+            <PackagingOutputs Include="@(ProjectPriFile)" />
+            <PackagingOutputs Include="@(_PackagingOutputsExpanded)" />
+            <PackagingOutputs Include="@(_GetResolvedSDKReferencesOutput)" />
+            <PackagingOutputs Include="@(_PackagingOutputsFromOtherProjects)" />
+            <PackagingOutputs Include="@(_ProjectArchitectureItem)" />
+        </ItemGroup>
+
+        <Message Text="$(ProjectName) : %(PackagingOutputs.ProjectName).%(PackagingOutputs.OutputGroup) : %(PackagingOutputs.Identity) -> %(PackagingOutputs.TargetPath)" />
+
+    </Target>
+
+    <!-- ============================== -->
+    <!-- Getting package architecture.  -->
+    <!-- ============================== -->
+
+    <PropertyGroup>
+        <_GetPackagePropertiesDependsOn>
+            $(_GetPackagePropertiesDependsOn);
+            _GetProjectArchitecture;
+            _GetRecursiveProjectArchitecture;
+            _GetPackageArchitecture;
+            _GetDefaultResourceLanguage;
+        </_GetPackagePropertiesDependsOn>
+    </PropertyGroup>
+
+    <!-- Gets some package properties. -->
+    <Target Name="_GetPackageProperties"
+            DependsOnTargets="$(_GetPackagePropertiesDependsOn)"
+            />
+
+    <!-- Extract Project Architecture from the payload -->
+    <Target Name="_GetRecursiveProjectArchitecture">
+
+        <ItemGroup>
+            <_RecursiveProjectArchitecture Include="@(PackagingOutputs)" Condition="'%(OutputGroup)' == '_GetProjectArchitecture'" />
+            <_RecursiveProjectArchitecture Remove="@(_RecursiveProjectArchitecture)" Condition="'%(ProjectName)' == '$(ProjectName)'" />
+        </ItemGroup>
+
+    </Target>
+
+    <!-- Gets package architecture. -->
+    <Target Name="_GetPackageArchitecture">
+
+        <GetPackageArchitecture
+            Platform="$(Platform)"
+            ProjectArchitecture="@(ProjectArchitecture)"
+            RecursiveProjectArchitecture="@(_RecursiveProjectArchitecture)"
+            >
+            <Output TaskParameter="PackageArchitecture" PropertyName="PackageArchitecture" />
+        </GetPackageArchitecture>
+
+    </Target>
+
+    <!-- Gets default resource language for the package. -->
+    <Target Name="_GetDefaultResourceLanguage">
+
+        <GetDefaultResourceLanguage 
+            DefaultLanguage="$(DefaultLanguage)"
+            SourceAppxManifest="@(SourceAppxManifest)"
+            >
+            <Output TaskParameter="DefaultResourceLanguage" PropertyName="DefaultResourceLanguage" />
+        </GetDefaultResourceLanguage>
+
+    </Target>
+
+    <!-- ====================== -->
+    <!-- Project output groups. -->
+    <!-- ====================== -->
+
+    <!-- Targets that all output groups defined in this targets depends on. -->
+    <PropertyGroup>
+        <AllOutputGroupsDependsOn>
+            $(AllOutputGroupsDependsOn)
+            BuildOnlySettings;
+            PrepareForBuild;
+            AssignTargetPaths;
+            ResolveReferences
+        </AllOutputGroupsDependsOn>
+    </PropertyGroup>
+
+    <!-- ======================================= -->
+    <!-- Output group including CopyLocal files. -->
+    <!-- ======================================= -->
+
+    <PropertyGroup>
+        <CopyLocalFilesOutputGroupDependsOn>
+            $(CopyLocalFilesOutputGroupDependsOn);
+            $(AllOutputGroupsDependsOn)
+        </CopyLocalFilesOutputGroupDependsOn>
+    </PropertyGroup>
+
+    <Target Name="CopyLocalFilesOutputGroup"
+            DependsOnTargets="$(CopyLocalFilesOutputGroupDependsOn)"
+            Returns="@(CopyLocalFilesOutputGroupOutput)">
+
+        <ItemGroup>
+            <CopyLocalFilesOutputGroupOutput Include="@(ReferenceCopyLocalPaths)"
+                                             Condition="'%(ReferenceCopyLocalPaths.Extension)' != '.xml' or '$(AppxCopyLocalFilesOutputGroupIncludeXmlFiles)' == 'true'">
+                <TargetPath>%(ReferenceCopyLocalPaths.DestinationSubDirectory)%(ReferenceCopyLocalPaths.Filename)%(ReferenceCopyLocalPaths.Extension)</TargetPath>
+            </CopyLocalFilesOutputGroupOutput>
+        </ItemGroup>
+
+        <!-- In case of Winmd files, we do not get implementation  -->
+        <!-- file as separate CopyLocal file (if exist), so we are -->
+        <!-- extracting it here.                                   -->
+        <ItemGroup>
+            <_WinmdWithImplementation
+                Include="@(CopyLocalFilesOutputGroupOutput)"
+                Condition="'%(CopyLocalFilesOutputGroupOutput.Extension)' == '.winmd' 
+                       AND '%(CopyLocalFilesOutputGroupOutput.Filename)' != 'platform'
+                       AND '%(CopyLocalFilesOutputGroupOutput.Implementation)' != ''"
+                />
+        </ItemGroup>
+
+        <ItemGroup>
+            <CopyLocalFilesOutputGroupOutput Include="%(_WinmdWithImplementation.RootDir)%(_WinmdWithImplementation.Directory)%(_WinmdWithImplementation.Implementation)">
+                <TargetPath>%(_WinmdWithImplementation.DestinationSubDirectory)%(_WinmdWithImplementation.Implementation)</TargetPath>
+            </CopyLocalFilesOutputGroupOutput>
+        </ItemGroup>
+
+    </Target>
+
+    <!-- =========================================== -->
+    <!-- Output group including COM reference files. -->
+    <!-- =========================================== -->
+
+    <PropertyGroup>
+        <ComFilesOutputGroupDependsOn>
+            $(ComFilesOutputGroupDependsOn);
+            $(AllOutputGroupsDependsOn)
+        </ComFilesOutputGroupDependsOn>
+    </PropertyGroup>
+
+    <Target Name="ComFilesOutputGroup"
+            DependsOnTargets="$(ComFilesOutputGroupDependsOn)"
+            Returns="@(ComFilesOutputGroupOutputs)">
+
+        <ItemGroup>
+            <ComFilesOutputGroupOutputs Include="@(ReferenceComWrappersToCopyLocal)" >
+                <TargetPath>%(ReferenceComWrappersToCopyLocal.Filename)%(ReferenceComWrappersToCopyLocal.Extension)</TargetPath>
+            </ComFilesOutputGroupOutputs>
+            <ComFilesOutputGroupOutputs Include="@(ResolvedIsolatedComModules)" >
+                <TargetPath>%(ResolvedIsolatedComModules.Filename)%(ResolvedIsolatedComModules.Extension)</TargetPath>
+            </ComFilesOutputGroupOutputs>
+            <ComFilesOutputGroupOutputs Include="@(NativeReferenceFile)" >
+                <TargetPath>%(NativeReferenceFile.Filename)%(NativeReferenceFile.Extension)</TargetPath>
+            </ComFilesOutputGroupOutputs>
+        </ItemGroup>
+
+    </Target>
+
+    <!-- ============================================ -->
+    <!-- Output group including Winmd artifact files. -->
+    <!-- ============================================ -->
+
+    <PropertyGroup>
+        <CopyWinmdArtifactsOutputGroupDependsOn>
+            $(CopyWinmdArtifactsOutputGroupDependsOn);
+            $(AllOutputGroupsDependsOn)
+        </CopyWinmdArtifactsOutputGroupDependsOn>
+    </PropertyGroup>
+
+    <Target
+        Name="CopyWinmdArtifactsOutputGroup"
+        DependsOnTargets="$(CopyWinmdArtifactsOutputGroupDependsOn)"
+        Returns="@(CopyWinmdArtifactsOutputGroupOutputs)">
+
+        <ItemGroup>
+            <CopyWinmdArtifactsOutputGroupOutputs Include="@(FinalWinmdExpArtifacts ->'%(FullPath)')">
+                <TargetPath>%(FinalWinmdExpArtifacts.DestinationSubDirectory)%(FinalWinmdExpArtifacts.Filename)%(FinalWinmdExpArtifacts.Extension)</TargetPath>
+            </CopyWinmdArtifactsOutputGroupOutputs>
+        </ItemGroup>
+
+    </Target>
+
+    <!-- ===================== -->
+    <!-- Prepare layout target -->
+    <!-- ===================== -->
+
+    <PropertyGroup>
+        <PrepareLayoutDependsOn>
+            $(PrepareLayoutDependsOn);
+            BeforePrepareLayout;
+            _PrepareLayout;
+            AfterPrepareLayout
+        </PrepareLayoutDependsOn>
+    </PropertyGroup>
+
+    <!-- Prepares layout for debbuging/launching. -->
+    <Target
+        Name="PrepareLayout"
+        Condition="'$(AppxPackage)' == 'true'"
+        DependsOnTargets="$(PrepareLayoutDependsOn)" />
+
+    <!-- Implement BeforePrepareLayout to influence final APPX layout recipe content.                          -->
+    <!-- Here one can specify these additional items:                                                          -->
+    <!-- (TODO: final extensibility items list and names - depending how much InternalPrepareLayout recognize) -->
+    <!--                                                                                                       -->
+    <!--    @(AppxAdditionalPackageContent)                                                                    -->
+    <!--    @(AppxAdditionalSDKDependencies)                                                                   -->
+    <!--    @(AppxAdditionalPRI)                                                                               -->
+    <!--    @(AppxAdditionalWinmd)                                                                             -->
+    <!--                                                                                                       -->
+    <Target Name="BeforePrepareLayout" />
+
+    <!-- Internal prepare layout target. -->
+    <Target
+        Name="_PrepareLayout"
+        Inputs="$(AppxPackageRecipe)"
+        Outputs="$(FinalAppxPackageRecipe)">
+
+        <!-- TODO: PRI and Winmd merge steps will be moved here -->
+
+        <Copy UseHardlinksIfPossible="false"
+              SourceFiles="$(AppxPackageRecipe)"
+              DestinationFiles="$(FinalAppxPackageRecipe)"
+              />
+    </Target>
+
+    <!-- Implement AfterPrepareLayout if needed to modify layout in more custom way. -->
+    <!-- Here one can do arbitraty changes to $(FinalAppxPackageRecipe)              -->
+    <Target Name="AfterPrepareLayout" />
+
+    <!-- ====================== -->
+    <!-- Register layout target -->
+    <!-- ====================== -->
+
+    <PropertyGroup>
+        <RegisterAppxLayoutDependsOn>
+            $(RegisterAppxLayoutDependsOn);
+            PrepareLayout
+        </RegisterAppxLayoutDependsOn>
+    </PropertyGroup>
+
+    <Target Name="RegisterAppxLayout"
+            Condition="'$(AppxPackage)' == 'true'"
+            DependsOnTargets="$(RegisterAppxLayoutDependsOn)">
+
+        <CreateAppxLayout
+            AppxRecipe="$(FinalAppxPackageRecipe)"
+            LayoutDir="$(LayoutDir)"
+            IgnoreLocalNetworkLoopback="$(IgnoreLocalNetworkLoopback)"
+            AllowLocalNetworkLoopback="$(AllowLocalNetworkLoopback)"
+            Incremental="$(UseIncrementalAppxRegistration)">
+
+            <Output TaskParameter="PackageFullName" PropertyName="PackageFullName"/>
+            <Output TaskParameter="FirstAppUserModelId" PropertyName="FirstAppUserModelId"/>
+        </CreateAppxLayout>
+    </Target>
+
+    <!-- ======================== -->
+    <!-- Unregister layout target -->
+    <!-- ======================== -->
+
+    <PropertyGroup>
+        <UnRegisterAppxLayoutDependsOn>
+            $(UnRegisterAppxLayoutDependsOn);
+        </UnRegisterAppxLayoutDependsOn>
+    </PropertyGroup>
+
+    <Target Name="UnRegisterAppxLayout"
+            Condition="'$(AppxPackage)' == 'true'"
+            DependsOnTargets="$(UnRegisterAppxLayoutDependsOn)">
+
+        <UnregisterAppx LayoutDir="$(LayoutDir)" />
+
+    </Target>
+
+</Project>

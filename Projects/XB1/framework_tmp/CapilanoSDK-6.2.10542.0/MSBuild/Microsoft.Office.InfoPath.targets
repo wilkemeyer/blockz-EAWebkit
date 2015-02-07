@@ -1,0 +1,9 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <UsingTask TaskName="UpdateInfoPathManifest" AssemblyName="Microsoft.Office.InfoPath.Vsta, Version=14.0.0.0, Culture=neutral, PublicKeyToken=71e9bce111e9429c, processorArchitecture=MSIL" />
+  <Target Name="AfterBuild" DependsOnTargets="ResolveAssemblyReferences;ResolveComReferences">
+    <UpdateInfoPathManifest TemplatePath="$(MSBuildProjectDirectory)\InfoPath Form Template" OutputPath="$(OutDir)" AssemblyName="$(AssemblyName)" ReferenceCopyLocalPaths="@(ReferenceCopyLocalPaths);@(ReferenceComWrappersToCopyLocal)" />
+  </Target>
+  <Target Name="AfterClean">
+    <UpdateInfoPathManifest TemplatePath="$(MSBuildProjectDirectory)\InfoPath Form Template" />
+  </Target>
+</Project>

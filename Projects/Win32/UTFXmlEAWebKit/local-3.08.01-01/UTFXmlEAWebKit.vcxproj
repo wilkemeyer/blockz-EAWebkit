@@ -1,0 +1,163 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="pc-vc-dev-debug|Win32">
+      <Configuration>pc-vc-dev-debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="pc-vc-dev-opt|Win32">
+      <Configuration>pc-vc-dev-opt</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{039A01FC-1E15-A313-FBEF-F672B5606B80}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <ProjectName>UTFXmlEAWebKit</ProjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'pc-vc-dev-debug|Win32' " Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v100</PlatformToolset>
+    <UseDebugLibraries>True</UseDebugLibraries>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'pc-vc-dev-opt|Win32' " Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v100</PlatformToolset>
+    <UseDebugLibraries>False</UseDebugLibraries>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\masm.props" />
+  </ImportGroup>
+  <ImportGroup Condition=" '$(Configuration)|$(Platform)' == 'pc-vc-dev-debug|Win32' " Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <ItemDefinitionGroup Condition=" '$(Configuration)|$(Platform)' == 'pc-vc-dev-debug|Win32' ">
+    <Midl />
+    <ClCompile>
+      <AdditionalIncludeDirectories>"..\..\..\..\EAWebKitSupportPackages\UTFXmlEAWebKit\local-3.08.01-01\include";"..\..\..\..\EAWebKitSupportPackages\coreallocatorEAWebKit\local-1.03.10-01\include";"..\..\..\..\EAWebKitSupportPackages\EABaseEAWebKit\local-2.00.35-01\include\Common";"..\..\..\..\EAWebKitSupportPackages\EASTLEAWebKit\local-1.15.03-01\include";"..\..\..\..\EAWebKitSupportPackages\EAAssertEAWebKit\local-1.03.04-01\include";"..\..\..\..\EAWebKitSupportPackages\EAIOEAWebKit\local-01\include";"..\..\..\..\EAWebKitSupportPackages\EAIOEAWebKit\local-01\include\EAIO\Wii";"$(VSInstallDir)\VC\ATLMFC\INCLUDE";"$(VSInstallDir)\VC\INCLUDE";"$(WindowsSDKDir)\include";"$(VSInstallDir)\SDK\v2.0\include";"$(VSInstallDir)\INCLUDE"</AdditionalIncludeDirectories>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <BufferSecurityCheck>FALSE</BufferSecurityCheck>
+      <CompileAs>Default</CompileAs>
+      <CompileAsWinRT>false</CompileAsWinRT>
+      <CompileOnly>TRUE</CompileOnly>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <DisableSpecificWarnings>4986; 4987; 4574; 4365; 4061; 4062; 4100; 4324; 4619; 4514; 4640; 4668; 4710; 4711; 4738; 4820; 4826; 4819; 4826; 4692; 4746; 4350; </DisableSpecificWarnings>
+      <ExceptionHandling>FALSE</ExceptionHandling>
+      <ForceConformanceInForLoopScope>TRUE</ForceConformanceInForLoopScope>
+      <MinimalRebuild>FALSE</MinimalRebuild>
+      <MultiProcessorCompilation>TRUE</MultiProcessorCompilation>
+      <Optimization>Disabled</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PreprocessorDefinitions>_CHAR16T;_CRT_SECURE_NO_WARNINGS;_DEBUG;_HAS_CPP0X=0;_HAS_EXCEPTIONS=0;_SECURE_SCL=1;_WIN32_IE=0x0502;_WIN32_WINNT=0x0502;EA_DEBUG;UTF_USE_EAASSERT=1;WIN32;WINVER=0x0502</PreprocessorDefinitions>
+      <ProcessorNumber>8</ProcessorNumber>
+      <ProgramDataBaseFileName>pc-vc-dev-debug\lib\UTFXmlEAWebKit.pdb</ProgramDataBaseFileName>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <RuntimeTypeInfo>FALSE</RuntimeTypeInfo>
+      <SuppressStartupBanner>TRUE</SuppressStartupBanner>
+      <TreatWarningAsError>FALSE</TreatWarningAsError>
+      <WarningLevel>EnableAllWarnings</WarningLevel>
+    </ClCompile>
+    <Lib>
+      <OutputFile>pc-vc-dev-debug\lib\UTFXmlEAWebKit.lib</OutputFile>
+      <SuppressStartupBanner>TRUE</SuppressStartupBanner>
+    </Lib>
+    <PreBuildEvent>
+      <Command>@if not exist "pc-vc-dev-debug\lib" mkdir "pc-vc-dev-debug\lib" &amp; SET ERRORLEVEL=0
+@if not exist "pc-vc-dev-debug\build\UTFXmlEAWebKit" mkdir "pc-vc-dev-debug\build\UTFXmlEAWebKit" &amp; SET ERRORLEVEL=0</Command>
+    </PreBuildEvent>
+  </ItemDefinitionGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'pc-vc-dev-debug|Win32' ">
+    <OutDir>pc-vc-dev-debug\lib\</OutDir>
+    <IntDir>pc-vc-dev-debug\build\UTFXmlEAWebKit\vstmp\</IntDir>
+    <TargetName>UTFXmlEAWebKit</TargetName>
+    <TargetExt>.lib</TargetExt>
+    <ExecutablePath>$(ExecutablePath)</ExecutablePath>
+    <IncludePath>$(IncludePath)</IncludePath>
+    <ReferencePath>$(ReferencePath)</ReferencePath>
+    <LibraryPath>$(LibraryPath)</LibraryPath>
+    <SourcePath>$(SourcePath)</SourcePath>
+    <ExcludePath>$(ExcludePath)</ExcludePath>
+  </PropertyGroup>
+  <ImportGroup Condition=" '$(Configuration)|$(Platform)' == 'pc-vc-dev-opt|Win32' " Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <ItemDefinitionGroup Condition=" '$(Configuration)|$(Platform)' == 'pc-vc-dev-opt|Win32' ">
+    <Midl />
+    <ClCompile>
+      <AdditionalIncludeDirectories>"..\..\..\..\EAWebKitSupportPackages\UTFXmlEAWebKit\local-3.08.01-01\include";"..\..\..\..\EAWebKitSupportPackages\coreallocatorEAWebKit\local-1.03.10-01\include";"..\..\..\..\EAWebKitSupportPackages\EABaseEAWebKit\local-2.00.35-01\include\Common";"..\..\..\..\EAWebKitSupportPackages\EASTLEAWebKit\local-1.15.03-01\include";"..\..\..\..\EAWebKitSupportPackages\EAAssertEAWebKit\local-1.03.04-01\include";"..\..\..\..\EAWebKitSupportPackages\EAIOEAWebKit\local-01\include";"..\..\..\..\EAWebKitSupportPackages\EAIOEAWebKit\local-01\include\EAIO\Wii";"$(VSInstallDir)\VC\ATLMFC\INCLUDE";"$(VSInstallDir)\VC\INCLUDE";"$(WindowsSDKDir)\include";"$(VSInstallDir)\SDK\v2.0\include";"$(VSInstallDir)\INCLUDE"</AdditionalIncludeDirectories>
+      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+      <BufferSecurityCheck>FALSE</BufferSecurityCheck>
+      <CompileAs>Default</CompileAs>
+      <CompileAsWinRT>false</CompileAsWinRT>
+      <CompileOnly>TRUE</CompileOnly>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <DisableSpecificWarnings>4986; 4987; 4574; 4365; 4061; 4062; 4100; 4324; 4619; 4514; 4640; 4668; 4710; 4711; 4738; 4820; 4826; 4819; 4826; 4692; 4746; 4350; </DisableSpecificWarnings>
+      <ExceptionHandling>FALSE</ExceptionHandling>
+      <ForceConformanceInForLoopScope>TRUE</ForceConformanceInForLoopScope>
+      <MinimalRebuild>FALSE</MinimalRebuild>
+      <MultiProcessorCompilation>TRUE</MultiProcessorCompilation>
+      <Optimization>MaxSpeed</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PreprocessorDefinitions>_CHAR16T;_CRT_SECURE_NO_WARNINGS;_HAS_CPP0X=0;_HAS_EXCEPTIONS=0;_SECURE_SCL=0;_WIN32_IE=0x0502;_WIN32_WINNT=0x0502;NDEBUG;UTF_USE_EAASSERT=1;WIN32;WINVER=0x0502</PreprocessorDefinitions>
+      <ProcessorNumber>8</ProcessorNumber>
+      <ProgramDataBaseFileName>pc-vc-dev-opt\lib\UTFXmlEAWebKit.pdb</ProgramDataBaseFileName>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <RuntimeTypeInfo>FALSE</RuntimeTypeInfo>
+      <SuppressStartupBanner>TRUE</SuppressStartupBanner>
+      <TreatWarningAsError>FALSE</TreatWarningAsError>
+      <WarningLevel>EnableAllWarnings</WarningLevel>
+    </ClCompile>
+    <Lib>
+      <OutputFile>pc-vc-dev-opt\lib\UTFXmlEAWebKit.lib</OutputFile>
+      <SuppressStartupBanner>TRUE</SuppressStartupBanner>
+    </Lib>
+    <PreBuildEvent>
+      <Command>@if not exist "pc-vc-dev-opt\lib" mkdir "pc-vc-dev-opt\lib" &amp; SET ERRORLEVEL=0
+@if not exist "pc-vc-dev-opt\build\UTFXmlEAWebKit" mkdir "pc-vc-dev-opt\build\UTFXmlEAWebKit" &amp; SET ERRORLEVEL=0</Command>
+    </PreBuildEvent>
+  </ItemDefinitionGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'pc-vc-dev-opt|Win32' ">
+    <OutDir>pc-vc-dev-opt\lib\</OutDir>
+    <IntDir>pc-vc-dev-opt\build\UTFXmlEAWebKit\vstmp\</IntDir>
+    <TargetName>UTFXmlEAWebKit</TargetName>
+    <TargetExt>.lib</TargetExt>
+    <ExecutablePath>$(ExecutablePath)</ExecutablePath>
+    <IncludePath>$(IncludePath)</IncludePath>
+    <ReferencePath>$(ReferencePath)</ReferencePath>
+    <LibraryPath>$(LibraryPath)</LibraryPath>
+    <SourcePath>$(SourcePath)</SourcePath>
+    <ExcludePath>$(ExcludePath)</ExcludePath>
+  </PropertyGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\..\..\EAWebKitSupportPackages\UTFXmlEAWebKit\local-3.08.01-01\include\UTFXml\XmlCallbackReader.h" />
+    <ClInclude Include="..\..\..\..\EAWebKitSupportPackages\UTFXmlEAWebKit\local-3.08.01-01\include\UTFXml\XmlCharClasses.inl" />
+    <ClInclude Include="..\..\..\..\EAWebKitSupportPackages\UTFXmlEAWebKit\local-3.08.01-01\include\UTFXml\XmlDomReader.h" />
+    <ClInclude Include="..\..\..\..\EAWebKitSupportPackages\UTFXmlEAWebKit\local-3.08.01-01\include\UTFXml\XmlEncoding.h" />
+    <ClInclude Include="..\..\..\..\EAWebKitSupportPackages\UTFXmlEAWebKit\local-3.08.01-01\include\UTFXml\XmlReader.h" />
+    <ClInclude Include="..\..\..\..\EAWebKitSupportPackages\UTFXmlEAWebKit\local-3.08.01-01\include\UTFXml\XmlTokenBuffer.h" />
+    <ClInclude Include="..\..\..\..\EAWebKitSupportPackages\UTFXmlEAWebKit\local-3.08.01-01\include\UTFXml\XmlWriter.h" />
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\UTFXmlEAWebKit\local-3.08.01-01\source\XmlCallbackReader.cpp" />
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\UTFXmlEAWebKit\local-3.08.01-01\source\XmlDomReader.cpp" />
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\UTFXmlEAWebKit\local-3.08.01-01\source\XmlEncoding.cpp" />
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\UTFXmlEAWebKit\local-3.08.01-01\source\XmlReader.cpp" />
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\UTFXmlEAWebKit\local-3.08.01-01\source\XmlReaderErrors.cpp" />
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\UTFXmlEAWebKit\local-3.08.01-01\source\XmlTokenBuffer.cpp" />
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\UTFXmlEAWebKit\local-3.08.01-01\source\XmlWriter.cpp" />
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\UTFXmlEAWebKit\local-3.08.01-01\source\internal\UTFXmlCoreAllocator.cpp" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\masm.targets" />
+  </ImportGroup>
+  <ProjectExtensions>
+    <VisualStudio>
+      <UserProperties platform_pc-vc-dev-debug_Win32="vc" vc-compiler="$(VSInstallDir)\VC\BIN\cl.exe" vc-compiler_clang="" vc-asm="$(VSInstallDir)\VC\BIN\ml.exe" vc-librarian="$(VSInstallDir)\VC\BIN\lib.exe" platform_pc-vc-dev-opt_Win32="vc" build.env.PATH="$(VSInstallDir)\Common7\IDE"></UserProperties>
+    </VisualStudio>
+  </ProjectExtensions>
+</Project>

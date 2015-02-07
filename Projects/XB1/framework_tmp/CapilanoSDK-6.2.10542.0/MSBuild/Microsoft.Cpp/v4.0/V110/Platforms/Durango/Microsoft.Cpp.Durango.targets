@@ -1,0 +1,537 @@
+﻿<!--
+***********************************************************************************************
+Microsoft.Cpp.Durango.targets
+
+WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and have
+          created a backup copy.  Incorrect changes to this file will make it
+          impossible to load or build your projects from the command-line or the IDE.
+
+This file defines the steps/targets required to build Visual C++ projects
+specifically on x64 platforms.
+
+Copyright (C) Microsoft Corporation. All rights reserved.
+***********************************************************************************************
+-->
+
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Platform.targets"/>
+  <Import Condition="'$(MsAppxPackageTargets)' != ''" Project="$(MsAppxPackageTargets)" />
+
+  <UsingTask TaskName="Microsoft.$(XdkPlatformName).Tasks.LayoutCopy"
+             AssemblyFile="$(DurangoXdkTasks)Microsoft.$(XdkPlatformName).Tasks.dll" />
+  <UsingTask TaskName="Microsoft.$(XdkPlatformName).Tasks.LayoutClean"
+             AssemblyFile="$(DurangoXdkTasks)Microsoft.$(XdkPlatformName).Tasks.dll" />
+  <UsingTask TaskName="Microsoft.$(XdkPlatformName).Tasks.GenerateAppManifest"
+             AssemblyFile="$(DurangoXdkTasks)Microsoft.$(XdkPlatformName).Tasks.dll" />
+  <UsingTask TaskName="Microsoft.$(XdkPlatformName).Tasks.GenerateAppPackageRecipe"
+             AssemblyFile="$(DurangoXdkTasks)Microsoft.$(XdkPlatformName).Tasks.dll" />
+  <UsingTask TaskName="Microsoft.$(XdkPlatformName).Tasks.ValidateAppManifest"
+             AssemblyFile="$(DurangoXdkTasks)Microsoft.$(XdkPlatformName).Tasks.dll" />
+
+  <!-- Properties to calculate after the project file is done. -->
+  <PropertyGroup>
+    <!-- Unique contributor identifier for contribution to LayoutDir -->
+    <_ContributorId>$(MSBuildProjectFullPath)</_ContributorId>
+    <_ContributorId Condition="'$(IsolateConfigurationsOnDeploy)'=='true'">$(MSBuildProjectFullPath)_$(Configuration)</_ContributorId>
+  </PropertyGroup>
+
+  <!--****************************
+       End SuppressCompatWarnings
+      ****************************-->
+
+  <!-- CRT and WinAPI family reconciliation. -->
+  <Target
+      Name="ReconcileFamily"
+      BeforeTargets="ClCompile">
+
+    <ItemGroup>
+      <ClCompile Condition="!($([System.Text.RegularExpressions.Regex]::IsMatch(%(ClCompile.PreprocessorDefinitions), '(^\s*_|;\s*_)CRT_USE_WINAPI_')))">
+        <PreprocessorDefinitions>_CRT_USE_WINAPI_PARTITION_APP;%(ClCompile.PreprocessorDefinitions)</PreprocessorDefinitions>
+      </ClCompile>
+    </ItemGroup>
+  </Target>
+
+  <!-- Default _UITHREADCTXT_SUPPORT to 0 to allow PPL headers to be included, if not otherwise declared. -->
+  <Target
+      Name="SetUiThreadCtxtSupport"
+      BeforeTargets="ClCompile">
+
+    <ItemGroup>
+      <ClCompile Condition="!($([System.Text.RegularExpressions.Regex]::IsMatch(%(ClCompile.PreprocessorDefinitions), '(^\s*_|;\s*_)UITHREADCTXT_SUPPORT=')))">
+        <PreprocessorDefinitions>_UITHREADCTXT_SUPPORT=0;%(ClCompile.PreprocessorDefinitions)</PreprocessorDefinitions>
+      </ClCompile>
+    </ItemGroup>
+  </Target>
+
+  <!-- Durango is not a formal platform recognized by underlying targets, swap in x64 during critical checks. -->
+  <Target
+      Name="PreAppxProjectArchitecture"
+      BeforeTargets="_GetProjectArchitecture">
+
+      <PropertyGroup>
+        <Platform>x64</Platform>
+      </PropertyGroup>
+
+  </Target>
+
+  <Target
+      Name="PostAppxProjectArchitecture"
+      AfterTargets="_GetProjectArchitecture">
+
+      <PropertyGroup>
+        <Platform>$(XdkPlatformName)</Platform>
+      </PropertyGroup>
+
+  </Target>
+
+  <!--
+        **
+        ** Override manifest generation for custom changes.
+        **
+  -->
+
+    <!-- Generates a final AppxManifest.xml that will be included in the appx package. -->
+    <!-- The generation includes pre-processing of any tokens in the input manifest file to produce a valid appx manifest file. -->
+    <!-- Input: [AppxManifest] Name of the manifest file template. -->
+    <!-- Output: [FinalAppxManifest] Final manifest file which will be included in the appx package. -->
+    <!-- Durango: LayoutDir copy requires attention to $(ProjectFileName) file changes, since Configurations share a common destination. -->
+    <Target Name="_GenerateCurrentProjectAppxManifest"
+            Condition="Exists(@(AppxManifest))"
+            Inputs="@(_GenerateCurrentProjectAppxManifestInput);$(ProjectFileName)"
+            Outputs="$(FinalAppxManifestName)">
+
+        <PropertyGroup>
+            <_AppXSchemaURI>http://schemas.microsoft.com/appx/2010/manifest</_AppXSchemaURI>
+            <_AppXSchemaNamespace>&lt;Namespace Prefix='x' Uri='$(_AppXSchemaURI)' /&gt;</_AppXSchemaNamespace>
+            <_AppXSchemaXboxURI>http://schemas.microsoft.com/appx/2013/xbox/manifest</_AppXSchemaXboxURI>
+            <_AppXSchemaXboxNamespace>&lt;Namespace Prefix='mx' Uri='$(_AppXSchemaXboxURI)' /&gt;</_AppXSchemaXboxNamespace>
+        </PropertyGroup>
+
+        <!-- Check if source manifest has definitions for application environment (old schema). -->
+        <XmlPeek XmlInputPath="@(AppxManifest)"
+                 Namespaces="$(_AppXSchemaNamespace)"
+                 Query="//x:Prerequisites/x:ApplicationEnvironment">
+                <Output TaskParameter="Result" ItemName="_PreAppEnvironment" />
+        </XmlPeek>
+        <XmlPeek XmlInputPath="@(AppxManifest)"
+                 Namespaces="$(_AppXSchemaNamespace)"
+                 Query="//x:Prerequisites/x:OSName">
+                <Output TaskParameter="Result" ItemName="_PreOSName" />
+        </XmlPeek>
+
+        <!-- Check if source manifest has definitions for application environment (new schema). -->
+        <XmlPeek Condition="'@(_PreAppEnvironment)'==''"
+                 XmlInputPath="@(AppxManifest)"
+                 Namespaces="$(_AppXSchemaNamespace);$(_AppXSchemaXboxNamespace)"
+                 Query="//x:Prerequisites/mx:ApplicationEnvironment">
+                <Output TaskParameter="Result" ItemName="_PreAppEnvironment" />
+        </XmlPeek>
+        <XmlPeek Condition="'@(_PreOSName)'==''"
+                 XmlInputPath="@(AppxManifest)"
+                 Namespaces="$(_AppXSchemaNamespace);$(_AppXSchemaXboxNamespace)"
+                 Query="//x:Prerequisites/mx:OSName">
+                <Output TaskParameter="Result" ItemName="_PreOSName" />
+        </XmlPeek>
+
+        <!-- ApplicationEnvironment and OSName is reserved for project use only. -->
+        <Error Condition="'@(_PreAppEnvironment)'!=''"
+                 Text="Remove ApplicationEnvironment element from Application manifest." />
+        <Error Condition="'@(_PreOSName)'!=''"
+                 Text="Remove OSName element from Application manifest." />
+
+        <!-- Determine if old schema or new schema is in use. -->
+        <XmlPeek XmlInputPath="@(AppxManifest)"
+                 Namespaces="$(_AppXSchemaNamespace)"
+                 Query="//x:Package">
+                <Output TaskParameter="Result" ItemName="_PackageElement" />
+        </XmlPeek>
+
+        <PropertyGroup>
+            <_PackageElementProp>@(_PackageElement)</_PackageElementProp>
+            <_NewSchema>$(_PackageElementProp.IndexOf($(_AppXSchemaXboxURI)))</_NewSchema>
+        </PropertyGroup>
+
+        <Message Condition="'$(_NewSchema)'!='-1'"
+                 Text="Xbox package manifest schema extensions enabled." />
+        <Message Condition="'$(_NewSchema)'=='-1'"
+                 Importance="High"
+                 Text="Deprecated package manifest schema, update package manifest to $(_AppXSchemaXboxURI)." />
+
+        <GenerateAppManifest
+             AppxManifestInput="@(AppxManifest)"
+             AppxManifestOutput="$(FinalAppxManifestName)"
+             ApplicationExecutableName="$(TargetName)"
+             FrameworkSdkReferences="@(FrameworkSdkReference)"
+             NonFrameworkSdkReferences="@(NonFrameworkSdkReference)"
+             CertificateThumbprint="$(PackageCertificateThumbprint)"
+             CertificateFile="$(PackageCertificateKeyFile)"
+             DefaultResourceLanguage="$(DefaultResourceLanguage)"
+             LanguageQualifiersPath="$(_LanguageQualifiersPath)"
+             PackageArchitecture="$(PackageArchitecture)"
+             SDKWinmdFiles="@(_AppxSDKWinmdFilesForHarvest)"
+             WinmdFiles="@(_AppxWinmdFilesToHarvest)"
+             ManagedWinmdInprocImplementation="$(ManagedWinmdInprocImplementation)"
+             />
+
+        <!-- Insert ApplicationEnvironment and OSName elements for Title Applications. -->
+        <XmlPeek Condition="'$(ApplicationEnvironment)'=='title'"
+                 XmlInputPath="@(AppxManifest)"
+                 Namespaces="$(_AppXSchemaNamespace);$(_AppXSchemaXboxNamespace)"
+                 Query="//x:Prerequisites/*">
+                <Output TaskParameter="Result" ItemName="_ManifestPreRequisites" />
+        </XmlPeek>
+
+        <!-- Xbox environment/OS data based on old schema. -->
+        <PropertyGroup Condition="'$(ApplicationEnvironment)'=='title' and '$(_NewSchema)' == '-1'" >
+            <_ModifiedManifestPreRequisites>@(_ManifestPreRequisites, '')&lt;ApplicationEnvironment&gt;title&lt;/ApplicationEnvironment&gt;&lt;OSName&gt;$(OSName)&lt;/OSName&gt;</_ModifiedManifestPreRequisites>
+        </PropertyGroup>
+
+        <!-- Xbox environment/OS data based on new schema. -->
+        <PropertyGroup Condition="'$(ApplicationEnvironment)'=='title' and '$(_NewSchema)' != '-1'" >
+            <_ModifiedManifestPreRequisites>@(_ManifestPreRequisites, '')&lt;mx:ApplicationEnvironment&gt;title&lt;/mx:ApplicationEnvironment&gt;&lt;mx:OSName&gt;$(OSName)&lt;/mx:OSName&gt;</_ModifiedManifestPreRequisites>
+        </PropertyGroup>
+
+        <!-- Prune out auto-inserted namespace resulting from XmlPeek query of Prerequisites. -->
+        <PropertyGroup Condition="'$(ApplicationEnvironment)'=='title'">
+            <_ModifiedManifestPreRequisites>$(_ModifiedManifestPreRequisites.Replace(' xmlns="$(_AppXSchemaURI)"', ''))</_ModifiedManifestPreRequisites>
+        </PropertyGroup>
+
+        <!-- Replace updated Prerequisites element. -->
+        <XmlPoke Condition="'$(ApplicationEnvironment)'=='title'"
+                 XmlInputPath="$(FinalAppxManifestName)"
+                 Namespaces="$(_AppXSchemaNamespace);$(_AppXSchemaXboxNamespace)"
+                 Query="//x:Prerequisites"
+                 Value="$(_ModifiedManifestPreRequisites)" />
+
+        <Message Condition="'$(ApplicationEnvironment)'=='title'"
+                 Text="Compiled as a Title Application." />
+
+        <Message Importance="low" Text="@(AppxManifest) -> $(FinalAppxManifestName)" />
+
+    </Target>
+
+    <!-- Process metadata required at runtime. -->
+
+    <PropertyGroup>
+        <PackageMetadataDirectory>$([System.IO.Path]::GetDirectoryName($(FinalAppxManifestName)))</PackageMetadataDirectory>
+        <PackageMetadata>$(PackageMetadataDirectory)\appdata.bin</PackageMetadata>
+        <PackageMetadataCommand>"$(PackageMetadataToolCommand)" appdata /f "$(FinalAppxManifestName)" /pd "$(PackageMetadataDirectory)"</PackageMetadataCommand>
+    </PropertyGroup>
+
+    <Target Name="GeneratePackageRuntimeMetadata"
+            Condition="'$(ApplicationEnvironment)'=='title'"
+            Inputs="$(FinalAppxManifestName)"
+            Outputs="$(PackageMetadata)"
+            AfterTargets="_GenerateCurrentProjectAppxManifest">
+
+        <Error Text="$(PackageMetadataToolPath) not found."
+               Condition="!Exists('$(PackageMetadataToolPath)')" />
+
+        <ItemGroup>
+           <LayoutSourceFiles Include="@(PackageMetadata)" />
+        </ItemGroup>
+
+        <Message Importance="low" Text="$(PackageMetadataCommand)" />
+
+        <Exec Command='$(PackageMetadataCommand)' />
+
+        <Message Importance="low" Text="Generated package runtime metadata $(PackageMetadata) from $(FinalAppxManifestName)" />
+
+        <WriteLinesToFile File="$(IntDir)$(ProjectName).write.1.tlog" Lines="$(PackageMetadata)"/>
+    </Target>
+
+  <!--
+        **
+        ** Override manifest validation.
+        **
+  -->
+
+    <Target Name="_ValidateAppxManifest">
+
+        <ValidateAppManifest  Input="@(FinalAppxManifest)"
+                              SourceAppxManifest="@(SourceAppxManifest)"
+                              AppxManifestSchema="$(AppxManifestSchema)"
+                              Configuration="$(Configuration)"
+                              ResolvedSDKReferences="@(RecursiveResolvedSDKReference)"
+                              />
+
+    </Target>
+
+  <!--
+        **
+        ** Override recipe file generation.
+        **
+  -->
+
+    <!-- Creates the recipe file for the the app package -->
+    <Target Name="_GenerateAppxPackageRecipeFile"
+            Inputs="$(MSBuildAllProjects);@(_GenerateAppxPackageRecipeInput)"
+            Outputs="$(AppxPackageRecipe)">
+
+        <GenerateAppPackageRecipe
+            AppxManifestXml="%(FinalAppxManifest.FullPath)"
+            SourceAppxManifest="@(SourceAppxManifest)"
+            SolutionConfiguration="$(Configuration)|$(Platform)"
+            PayloadFiles="@(AppxPackagePayload)"
+            FrameworkSdkPackages="@(FrameworkSdkPackage)"
+            RecipeFile="$(AppxPackageRecipe)"
+            SystemBinaries="@(AppxSystemBinary)"
+            ReservedFileNames="@(AppxReservedFileName)"
+            QueryNamespacePrefix="$(AppxManifestQueryNamespacePrefix)"
+            ManifestFileNameQueries="@(AppxManifestFileNameQuery)"
+            ManifestImageFileNameQueries="@(AppxManifestImageFileNameQuery)"
+            PackageArchitecture="$(PackageArchitecture)"
+            ProjectDir="$(ProjectDir)"
+            />
+
+        <Message Importance="low" Text="Manifest: %(FinalAppxManifest.Identity)" />
+        <Message Importance="low" Text="Payload: %(AppxPackagePayload.TargetPath) from %(AppxPackagePayload.FullPath)" />
+        <Message Importance="low" Text="SDK reference: %(RecursiveResolvedSDKReference.TargetPath) from %(RecursiveResolvedSDKReference.FullPath)" />
+        <Message Importance="low" Text="$(MSBuildProjectName) -> $(AppxPackageRecipe)" />
+
+    </Target>
+
+  <!--
+        **
+        ** Filter out VCLibs as a dependent package since Durango includes
+        ** it with the Application and not as a separate package as Win8 does.
+        **
+  -->
+
+  <Target Name="GetInstalledSDKLocationsFilter"
+          BeforeTargets="GetInstalledSDKLocations">
+
+      <ItemGroup Condition="'@(SDKReference)' != ''">
+        <SDKReference Remove="Microsoft.VCLibs, Version=11.0" />
+
+      </ItemGroup>
+
+  </Target>
+
+  <!--
+        **
+        ** VC disallows hardcoded platforms, override to provide winmdassembly generation.
+        **
+        ** Some settings may have changed since default, set critical properties at the last opportunity.
+        **
+  -->
+
+
+  <Target Name="_PrepareForReferenceResolution" >
+
+    <PropertyGroup>
+      <ManagedAssembly>false</ManagedAssembly>
+    </PropertyGroup>
+
+    <!-- Clear the target framework for Native projects. -->
+    <PropertyGroup>
+      <TargetFrameworkMoniker />
+    </PropertyGroup>
+
+    <!-- Filter out System.Core added by: Microsoft.NETFramework.props, and mscorlib from winmds. -->
+    <PropertyGroup>
+      <AdditionalExplicitAssemblyReferences />
+    </PropertyGroup>
+
+    <ItemGroup Condition="'$(WinMDAssembly)' == 'true' and '$(TargetPlatformWinMDLocation)' != ''">
+      <Reference Include="$(TargetPlatformWinMDLocation)*.winmd">
+        <IsWinMDFile>true</IsWinMDFile>
+        <CopyLocal>false</CopyLocal>
+        <IsSystemReference>True</IsSystemReference>
+        <Implicit>true</Implicit>
+      </Reference>
+    </ItemGroup>
+
+    <Message Condition="'$(_REFERENCE_DEBUG)'=='true'" Importance="High" Text="ReferencePath=@(ReferencePath)" />
+  </Target>
+
+  <Target Name="PrepareForLayout">
+
+    <ItemGroup>
+      <LayoutSourceDirs Include="$(OutDir)">
+        <ExclusionFilter>$(LayoutExtensionFilter)</ExclusionFilter>
+      </LayoutSourceDirs>
+    </ItemGroup>
+
+    <CallTarget Targets="ContentFilesProjectOutputGroup">
+        <Output TaskParameter="TargetOutputs" ItemName="_ContentFilesProjectOutputGroupOutput"/>
+    </CallTarget>
+
+    <CallTarget Targets="SDKRedistOutputGroup">
+        <Output TaskParameter="TargetOutputs" ItemName="_SDKRedistOutputGroupOutput"/>
+    </CallTarget>
+
+    <ItemGroup>
+      <LayoutSourceFiles Include="@(_ContentFilesProjectOutputGroupOutput)" />
+      <LayoutSourceFiles Include="@(_SDKRedistOutputGroupOutput)" />
+      <LayoutSourceFiles Condition="'$(DeployCrt)'=='true' and '$(UseDebugLibraries)'!='true'" Include="@(CrtList)" />
+      <LayoutSourceFiles Condition="'$(DeployCrt)'=='true' and '$(UseDebugLibraries)'=='true'" Include="@(CrtListDebug)"/>
+    </ItemGroup>
+
+    <MakeDir Condition="!Exists('$(LayoutDir)')"
+             Directories="$(LayoutDir)" />
+
+  </Target>
+
+  <Target Name="Layout"
+          DependsOnTargets="PrepareForLayout">
+
+    <LayoutCopy
+      ContributorId="$(_ContributorId)"
+      InputDirs="@(LayoutSourceDirs)"
+      FileList="@(LayoutSourceFiles)"
+      IgnoreMissingFiles="false"
+      LayoutDir="$(LayoutDir)">
+      <Output TaskParameter="FilesCopied" ItemName="CopiedItems" />
+      <Output TaskParameter="OrphansRemoved" ItemName="RemovedItems" />
+    </LayoutCopy>
+
+  </Target>
+
+  <Target Name="CleanLayout"
+          AfterTargets="Clean"
+          Condition="'$(OutputType)' == 'exe' or '$(ConfigurationType)' == 'Makefile'">
+
+    <LayoutClean
+      ContributorId="$(_ContributorId)"
+      CleanAllContributors="false"
+      LayoutDir="$(LayoutDir)"
+      Condition="Exists('$(LayoutDir)')">
+      <Output TaskParameter="FilesCleaned" ItemName="FilesCleaned" />
+      <Output TaskParameter="ContributorsCleaned" PropertyName="RemovedContributors" />
+    </LayoutClean>
+
+  </Target>
+
+  <!--
+        **
+        ** Deploy is handled at a different phase on Durango, ignore the _Deploy override available.
+        **
+  -->
+
+
+  <Target Name="_DurangoDeploy"
+          DependsOnTargets="Layout"
+          AfterTargets="AfterBuild"
+          Condition="'$(OutputType)' == 'exe' or '$(ConfigurationType)' == 'Makefile'">
+  </Target>
+
+  <!--
+        **
+        ** Tool connections are sensitive to bitness, and have override settings for most of them.
+        ** FXC does not, so we must override here and explicitly set Native64Bit. This target
+        ** was cloned from Microsoft.Cpp\v4.0\V110\Microsoft.CppCommon.targets.
+        **
+  -->
+
+  <Target Name="FxCompile"
+          BeforeTargets="$(FxCompileBeforeTargets)"
+          AfterTargets="$(FxCompileAfterTargets)"
+          Condition="'@(FxCompile)' != ''"
+          DependsOnTargets="_SelectedFiles;MakeDirsForFxc">
+
+    <ItemGroup Condition="'@(SelectedFiles)' != ''">
+      <FxCompile Remove="@(FxCompile)" Condition="'%(Identity)' != '@(SelectedFiles)'" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <FxCompile Condition="'@(FxCompile)' != ''">
+        <MinimalRebuildFromTracking Condition="'$(_BuildActionType)' != 'Build' or '$(ForceRebuild)' == 'true'">false</MinimalRebuildFromTracking>
+      </FxCompile>
+    </ItemGroup>
+
+    <!-- ToolArchitecture added for Durango FXC, which is strictly 64 bit. -->
+    <FXC
+        Condition                    = "'@(FxCompile)' != '' and '%(FxCompile.ExcludedFromBuild)'!='true'"
+        Source                       = "%(FxCompile.Identity)"
+        ToolPath                     = "$(FXCToolPath)"
+        AdditionalIncludeDirectories = "%(FxCompile.AdditionalIncludeDirectories)"
+        SuppressStartupBanner        = "%(FxCompile.SuppressStartupBanner)"
+        EntryPointName               = "%(FxCompile.EntryPointName)"
+        TreatWarningAsError          = "%(FxCompile.TreatWarningAsError)"
+        ShaderType                   = "%(FxCompile.ShaderType)"
+        ShaderModel                  = "%(FxCompile.ShaderModel)"
+        PreprocessorDefinitions      = "%(FxCompile.PreprocessorDefinitions)"
+        HeaderFileOutput             = "%(FxCompile.HeaderFileOutput)"
+        ObjectFileOutput             = "%(FxCompile.ObjectFileOutput)"
+        AssemblerOutput              = "%(FxCompile.AssemblerOutput)"
+        AssemblerOutputFile          = "%(FxCompile.AssemblerOutputFile)"
+        VariableName                 = "%(FxCompile.VariableName)"
+        AdditionalOptions            = "%(FxCompile.AdditionalOptions)"
+        DisableOptimizations         = "%(FxCompile.DisableOptimizations)"
+        EnableDebuggingInformation   = "%(FxCompile.EnableDebuggingInformation)"
+        TrackerLogDirectory          = "%(FxCompile.TrackerLogDirectory)"
+        TrackedInputFilesToIgnore    = "@(FxCompileNoDependencies)"
+        TrackFileAccess              = "$(TrackFileAccess)"
+        MinimalRebuildFromTracking   = "%(FxCompile.MinimalRebuildFromTracking)"
+        ToolArchitecture             = "Native64Bit"
+      />
+
+    <WriteLinesToFile File="$(IntDir)$(ProjectName).write.1.tlog" Lines="@(FxCompile->'^%(Identity)');@(FxCompile->MetaData('HeaderFileOutput')->FullPath()->Distinct());@(FxCompile->MetaData('ObjectFileOutput')->FullPath()->Distinct());@(FxCompile->MetaData('AssemblerOutputFile')->FullPath()->Distinct())"/>
+  </Target>
+
+  <!--
+        **
+        ** MASM build customization props recognizes only Win32 and X64 platforms, declaring it
+        ** too late in the property imports to override. This target intercepts _MASM and declares
+        ** the X64 value before being passed to MASM with a failure regarding the Durango platform.
+        ** This is not a property that would be found in a project file, so no check for existing
+        ** values is needed.
+        **
+  -->
+
+  <Target Name="InterceptMASM"
+          BeforeTargets="_MASM">
+
+    <ItemGroup>
+      <MASM>
+        <CommandLineTemplate>ml64.exe /c [AllOptions] [AdditionalOptions] /Ta[Inputs]</CommandLineTemplate>
+      </MASM>
+    </ItemGroup>
+  </Target>
+
+  <!-- Allow for multiple AppIds in the same manifest during recipe generation. -->
+  <Target Name="_MultiAppIdPayloadCalculation"
+          AfterTargets="_CalculateInputsForGenerateAppxPackageRecipe">
+
+    <XmlPeek XmlInputPath="@(FinalAppxManifest)"
+             Namespaces="&lt;Namespace Prefix='x' Uri='http://schemas.microsoft.com/appx/2010/manifest' /&gt;"
+             Query="//x:Application/@Executable">
+            <Output TaskParameter="Result" ItemName="_MultiAppIdAppList" />
+    </XmlPeek>
+
+    <!-- Gather related components. -->
+    <XmlPeek XmlInputPath="@(FinalAppxManifest)"
+             Namespaces="&lt;Namespace Prefix='x' Uri='http://schemas.microsoft.com/appx/2010/manifest' /&gt;"
+             Query="//x:Extension/x:InProcessServer/x:Path/text()">
+            <Output TaskParameter="Result" ItemName="_MultiAppIdExtensionList" />
+    </XmlPeek>
+
+    <PropertyGroup>
+      <_MultiAppIdAppListFlat>@(_MultiAppIdAppList)</_MultiAppIdAppListFlat>
+      <_MultipleAppsListed>$(_MultiAppIdAppListFlat.IndexOf(';'))</_MultipleAppsListed>
+    </PropertyGroup>
+
+    <Message Condition="'$(_MultipleAppsListed)' > '-1'"
+             Importance="High"
+             Text="Multiple Application registrations '@(_MultiAppIdAppList)'" />
+
+    <ItemGroup Condition="'$(_MultipleAppsListed)' > '-1'">
+      <!-- Exclude target output name from override and extensions. -->
+      <_MultiAppIdAppList Remove="$(TargetFileName)" />
+      <_MultiAppIdExtensionList Remove="%(AppxPackagePayload.FileName)%(AppxPackagePayload.Extension)" />
+      <AppxSystemBinary Include="@(_MultiAppIdAppList);@(_MultiAppIdExtensionList)">
+        <TargetPath>.\</TargetPath>
+       </AppxSystemBinary>
+    </ItemGroup>
+</Target>
+
+  <Import
+      Project="$(VCTargetsPath)\Platforms\$(XdkPlatformName)\Microsoft.Makefile.$(XdkPlatformName).targets"
+      Condition="'$(ConfigurationType)' == 'Makefile'" />
+  <Import
+      Project="$(VCTargetsPath)\Platforms\$(XdkPlatformName)\Microsoft.Cpp.$(XdkPlatformName).CommandLine.targets"
+      Condition="'$(BuildingInsideVisualStudio)' != 'true'" />
+
+</Project>

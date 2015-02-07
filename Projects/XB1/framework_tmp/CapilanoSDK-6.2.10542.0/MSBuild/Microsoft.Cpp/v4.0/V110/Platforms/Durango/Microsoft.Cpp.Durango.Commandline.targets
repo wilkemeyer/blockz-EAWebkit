@@ -1,0 +1,102 @@
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <!--
+    Overridden from Microsoft.Common.targets so we can pass in our $(RootOutDir) property.
+    ============================================================
+                                       ResolveProjectReferences
+
+    Build referenced projects:
+
+      [IN]
+      @(ProjectReferenceWithConfiguration) - The list of project references.
+
+      [OUT]
+      @(_ResolvedNativeProjectReferencePaths) - Paths to referenced native projects.
+      @(_ResolvedProjectReferencePaths) - Paths to referenced managed projects.
+    ============================================================
+  -->
+  <Target
+      Name="ResolveProjectReferences"
+      DependsOnTargets="AssignProjectConfiguration;_SplitProjectReferencesByFileExistence"
+      Returns="@(_ResolvedNativeProjectReferencePaths);@(_ResolvedProjectReferencePaths)">
+
+    <!--
+        When building this project from the IDE, just gather the referenced build outputs.
+        The IDE will already have built the project, so there's no need to do it again here.
+
+        The ContinueOnError setting is here so that, during project load, as
+        much information as possible will be passed to the compilers.
+    -->
+
+    <MSBuild
+        Projects="@(_MSBuildProjectReferenceExistent)"
+        Targets="GetTargetPath"
+        BuildInParallel="$(BuildInParallel)"
+        Properties="%(_MSBuildProjectReferenceExistent.SetConfiguration);%(_MSBuildProjectReferenceExistent.SetPlatform)"
+        Condition="'%(_MSBuildProjectReferenceExistent.BuildReference)' == 'true' and '@(ProjectReferenceWithConfiguration)' != '' and ('$(BuildingInsideVisualStudio)' == 'true' or '$(BuildProjectReferences)' != 'true') and '@(_MSBuildProjectReferenceExistent)' != ''"
+        ContinueOnError="!$(BuildingProject)"
+        RemoveProperties="%(_MSBuildProjectReferenceExistent.GlobalPropertiesToRemove)">
+
+      <Output TaskParameter="TargetOutputs" ItemName="_ResolvedProjectReferencePaths" Condition="'%(_MSBuildProjectReferenceExistent.ReferenceOutputAssembly)'=='true'"/>
+      <Output TaskParameter="TargetOutputs" ItemName="%(_MSBuildProjectReferenceExistent.OutputItemType)" Condition="'%(_MSBuildProjectReferenceExistent.OutputItemType)' != ''"/>
+
+    </MSBuild>
+
+    <!--
+        Build referenced projects when building from the command line.
+    -->
+    <MSBuild
+        Projects="@(_MSBuildProjectReferenceExistent)"
+        Targets="%(_MSBuildProjectReferenceExistent.Targets)"
+        BuildInParallel="$(BuildInParallel)"
+        Properties="%(_MSBuildProjectReferenceExistent.SetConfiguration);%(_MSBuildProjectReferenceExistent.SetPlatform)"
+        Condition="'%(_MSBuildProjectReferenceExistent.BuildReference)' == 'true' and '@(ProjectReferenceWithConfiguration)' != '' and '$(BuildingInsideVisualStudio)' != 'true' and '$(BuildProjectReferences)' == 'true' and '@(_MSBuildProjectReferenceExistent)' != ''"
+        ContinueOnError="$(ContinueOnError)"
+        RemoveProperties="%(_MSBuildProjectReferenceExistent.GlobalPropertiesToRemove)">
+
+      <Output TaskParameter="TargetOutputs" ItemName="_ResolvedProjectReferencePaths" Condition="'%(_MSBuildProjectReferenceExistent.ReferenceOutputAssembly)'=='true' or '$(DesignTimeBuild)' == 'true'"/>
+      <Output TaskParameter="TargetOutputs" ItemName="%(_MSBuildProjectReferenceExistent.OutputItemType)" Condition="'%(_MSBuildProjectReferenceExistent.OutputItemType)' != ''"/>
+
+    </MSBuild>
+
+    <!--
+        Get manifest items from the (non-exe) built project references (to feed them into ResolveNativeReference).
+    -->
+    <MSBuild
+        Projects="@(_MSBuildProjectReferenceExistent)"
+        Targets="GetNativeManifest"
+        BuildInParallel="$(BuildInParallel)"
+        Properties="%(_MSBuildProjectReferenceExistent.SetConfiguration);%(_MSBuildProjectReferenceExistent.SetPlatform)"
+        Condition="'%(_MSBuildProjectReferenceExistent.BuildReference)' == 'true' and '@(ProjectReferenceWithConfiguration)' != '' and '$(BuildingProject)' == 'true' and '@(_MSBuildProjectReferenceExistent)' != ''"
+        ContinueOnError="$(ContinueOnError)"
+        RemoveProperties="%(_MSBuildProjectReferenceExistent.GlobalPropertiesToRemove)">
+
+      <Output TaskParameter="TargetOutputs" ItemName="NativeReference" Condition="'%(_MSBuildProjectReferenceExistent.ReferenceOutputAssembly)' == 'true'"/>
+
+    </MSBuild>
+
+    <ItemGroup>
+      <_ResolvedProjectReferencePaths Remove="@(_ResolvedProjectReferencePaths)" Condition="'%(_ResolvedProjectReferencePaths.ResolveableAssembly)' == 'false'" />
+      <!--
+          Copy OriginalItemSpec to OriginalProjectReferenceItemSpec, so that when ResolveAssemblyReferences
+          takes these items and resolves them to ReferencePath, we can still recover the _real_ OriginalItemSpec
+          for the unresolved reference items.
+      -->
+      <_ResolvedProjectReferencePaths>
+        <OriginalProjectReferenceItemSpec>%(_ResolvedProjectReferencePaths.OriginalItemSpec)</OriginalProjectReferenceItemSpec>
+      </_ResolvedProjectReferencePaths>
+    </ItemGroup>
+
+    <!-- Issue a warning for each non-existent project. -->
+    <Warning
+        Text="The referenced project '%(_MSBuildProjectReferenceNonexistent.Identity)' does not exist."
+        Condition="'@(ProjectReferenceWithConfiguration)' != '' and '@(_MSBuildProjectReferenceNonexistent)' != ''"/>
+
+    <!-- Record referenced project output as layout sources during command line builds -->
+    <ItemGroup>
+      <LayoutSourceDirs Include="%(_ResolvedProjectReferencePaths.RelativeDir)">
+        <ExclusionFilter>$(LayoutExtensionFilter)</ExclusionFilter>
+      </LayoutSourceDirs>
+    </ItemGroup>
+  </Target>
+</Project>
