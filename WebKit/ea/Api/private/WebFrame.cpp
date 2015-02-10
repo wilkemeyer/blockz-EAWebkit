@@ -757,6 +757,12 @@ void WebFrame::render(ISurface *surface, const eastl::vector<WebCore::IntRect> &
             //cairo_surface_write_to_png(cairoSurface.get(), "test.png");
         }
 
+		// Added an assert here to detect if cairo failed to paint (for example, OOM). There are few other places where we use cairo to draw outside of
+		// GraphicsContextCairo but this is the main location where our page renders.
+		cairo_status_t cairoStatus = cairo_status(cairoContext.get());
+		(void) cairoStatus;
+		EAW_ASSERT_FORMATTED(cairoStatus == CAIRO_STATUS_SUCCESS, "cairo failed with status - %d",cairoStatus);
+
         if(d->page->view()->ShouldDrawDebugVisuals())
 		{
 			cairo_save(cairoContext.get());

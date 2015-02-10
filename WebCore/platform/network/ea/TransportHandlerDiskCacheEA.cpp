@@ -26,15 +26,8 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-///////////////////////////////////////////////////////////////////////////////
-// TransportHandlerDiskCache.cpp
-//
 // Created by Nicki Vankoughnett
-//    based on UTFInternet/INetFileCache.h
-//
-// This is strictly a utility class that is a cache of files obtained from 
-// the Internet, usually obtained via HTTP and FTP.
-///////////////////////////////////////////////////////////////////////////////
+
 
 // 4/16/10 CSidhall - Update:
 // Changed and fixed cache directive detection.
@@ -42,7 +35,6 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // Added checksum for corrupted files.
 // Added version number to iniFile.
 // Added open file limiter to limit too many open handles.
-// Added max files limit in the cache directory. 
 // Made system use max-age or expires values versus a 5 hour default.
 // Added a shared buffer for blocking reads.
 
@@ -50,7 +42,6 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "TransportHandlerDiskCacheEA.h"
 #include "SharedBuffer.h"
 #include "INetMIMEEA.h"
-//#include "PlatformString.h"
 #include <EAIO/PathString.h>
 #include <EAIO/EAStreamMemory.h>
 #include <EAIO/EAFileBase.h>
@@ -62,13 +53,13 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <internal/include/EAWebKitNewDelete.h>
 #include <stdio.h>
 #include <time.h>
-#include <EAWebKit/EAWebKit.h>  // Time
-#include "DateEA.h"           // Time conversion
+#include <EAWebKit/EAWebKit.h>  
+#include "DateEA.h"           
 #include <EAIO/FnEncode.h>
 #include "SystemTime.h"
 #include <EAWebKit/EAWebKitFileSystem.h>
 #include <internal/include/EAWebkit_p.h>
-
+#include <wtf/CryptographicallyRandomNumber.h>
 
 namespace EA
 {
@@ -76,48 +67,24 @@ namespace EA
 namespace WebKit
 {
 
-int32_t GetHTTPTime()   //as implemented in HTTPBase.cpp from UTFInternet package
+const uint32_t	kDefaultAccessCountBeforeMaintenance	= 40;                 // Number of file accesses before we purge values.
+const char16_t* kDefaultCacheDirectoryName				= EA_CHAR16("cache\\"); 
+const char16_t* kDefaultIniFileName						= EA_CHAR16("FileCache.ini");
+const char8_t*  kDefaultIniFileSection					= "Cache Entries: V 1.01.00"; // Change version # if format changes. 
+const char8_t*  kCacheLineEntry							= "Cache Entry:";      // Each line
+const char8_t*  kCacheChecksum							= "Cache Checksum:";   // Each line
+const char16_t* kCachedFileExtension					= EA_CHAR16(".cache");
+const char16_t* kSearchCachedFileExtension				= EA_CHAR16("*.cache");          // This should work on all platforms
+const int32_t   kMaxTransferLoops						= 100;                 // Just a timeout safety which would limit the read loops in a frame for a file    
+const double    kMaxTransferLoopTime					= (1.0/60.0);          // Timeout for large file read loops - ~16 ms. This is probably not the most appropriate value. 
+const uint32_t  kCacheDownloadBufferSize				= 1024 * 64;           // Shared download buffer size  
+const uint32_t  kCacheDownloadBufferAlign				= 16;                  // Shared download buffer alignment  
+const uint32_t	kOverHeadFileHandlesReqd				= 2;					// (1 FileCache.ini, 1 cache file write operation)						
+
+static int32_t GetTimeInSeconds()   
 {
     return (int32_t)time(NULL);
 }
-
-
-
-// Constants
-//
-const uint32_t   kDefaultAccessCountBeforeMaintenance  = 40;                 // Number of file accesses before we purge values.
-const uint32_t   kMaxPracticalFileSize                 = 1000000 * 4;        // ~4 MB TODO: this is questionable, probably should be settable option
-const uint32_t   kDefaultFileCacheSize                 = 1000000 * 3;        // ~3 MB
-const uint32_t   kDefaultExpirationTimeSeconds         = 60 * 60 * 5;        // 5 hours
-const bool       kDefaultKeepExpired                   = false;
-const char16_t*  kDefaultCacheDirectoryName            = EA_CHAR16("cache\\"); 
-const char16_t*  kDefaultIniFileName                   = EA_CHAR16("FileCache.ini");
-const char8_t*   kDefaultIniFileSection                = "Cache Entries: V 1.01.00"; // Change version # if format changes. 
-const char8_t*   kCacheLineEntry                       = "Cache Entry:";      // Each line
-const char8_t*   kCacheChecksum                        = "Cache Checksum:";   // Each line
-const char16_t*  kCachedFileExtension                  = EA_CHAR16(".cache");
-const char16_t*  kSearchCachedFileExtension            = EA_CHAR16("*.cache");          // This should work on all platforms
-const int32_t    kMaxTransferLoops                     = 100;                 // Just a timeout safety which would limit the read loops in a frame for a file    
-const double     kMaxTransferLoopTime                  = (1.0/60.0);          // Timeout for large file read loops  
-const uint32_t   kMinAgeToCache                        = 1;                   // 1 second age min consider caching. 
-const uint32_t   kMaxAgeToCache                        = ((60 * 60) * 24 * 365) * 10; // About 10 years in seconds 
-const int32_t    kMaxOpenFiles                         = 24;                   // Limit for the number of open files  
-const uint32_t   kMaxFileCount                         = 2048;                // Limit the amount of files that can be cached in the cache dir  + 1 for the ini file
-const uint32_t   kCacheDownloadBufferSize              = 1024 * 64;           // Shared download buffer size  
-const uint32_t   kCacheDownloadBufferAlign             = 16;                  // Shared download buffer alignment  
-
-// THREAD_SAFE_CALL / THREAD_SAFE_INNER_CALL
-// 
-// If thread safety is enabled (and it usually is), these defines map 
-// to mutex locks and verification of mutex locks respectively.
-//
-#if IFC_THREAD_SAFE
-#define THREAD_SAFE_CALL        EA::Thread::AutoMutex autoMutex(mMutex)
-#define THREAD_SAFE_INNER_CALL  EAW_ASSERT(mMutex.HasLock())
-#else
-#define THREAD_SAFE_CALL
-#define THREAD_SAFE_INNER_CALL
-#endif
 
 // abaldeva:
 // It is expensive solution that requires creating string object but since this code is
@@ -187,8 +154,8 @@ static uint32_t GetByteChecksum(const char* buffer, const int32_t size, const ui
     return sum;
 }
 
-// Converts a value to a string 
-static char16_t* EAIOItoa16(uint32_t value, char16_t* buffer)
+// Converts a uint32_t value to a char16_t with 16 bytes (so total size is 32 bytes) 
+static char16_t* Uint32ToAsciiChar16(uint32_t value, char16_t* buffer)
 {
     buffer[15] = 0;
     uint32_t i = 14;
@@ -201,25 +168,20 @@ static char16_t* EAIOItoa16(uint32_t value, char16_t* buffer)
 }
 
 
-// Grabbed this from EAIO but changed so does not create files but just checks if they exist
-bool MakeTempPathName(char16_t* pPath, const char16_t* pDirectory, const char16_t* pFileName, const char16_t* pExtension)
+// pPath is set to a valid file name if this function returns true.
+static bool MakeTempPathName(char16_t* pPath, const char16_t* pDirectory, const char16_t* pFileName, const char16_t* pExtension)
 {
-    using namespace EA::IO::Path;
+	if(!pDirectory || !pPath)
+	{
+		return false;
+	}
 
-    // User must allocate space for the resulting temp path.
-    const int              kMaxPathLength                    = 260;  
+    uint32_t nDestPathLength = EA::WebKit::FileSystem::kMaxPathLength;
 
-    uint32_t nDestPathLength=kMaxPathLength;
-
-     EA::WebKit::FileSystem* pFS = EA::WebKit::GetFileSystem();
-    
-    if((pPath) && (pFS))
+    if(EA::WebKit::FileSystem* pFS = EA::WebKit::GetFileSystem())
     {
         static const char16_t pFileNameDefault[]  = { 't', 'e', 'm', 'p', 0 };
         static const char16_t pExtensionDefault[] = { '.', 't', 'm', 'p', 0 };
-
-        double curTime = EA::WebKit::GetTime();
-        uint32_t nTime = (uint32_t) curTime;
 
         if(!pFileName)
             pFileName = pFileNameDefault;
@@ -227,21 +189,16 @@ bool MakeTempPathName(char16_t* pPath, const char16_t* pDirectory, const char16_
         if(!pExtension)
             pExtension = pExtensionDefault;
 
-        if(!pDirectory)
+		//try up to 64 times to generate a random number and in turn a random file name that does not exist
+        for(size_t i = 0; i < 64; i++) 
         {
-            // No temp dir supported if was not specified
-            return false;
-        }
+			char16_t buffer[16];
+			uint32_t randomNumber = WTF::cryptographicallyRandomNumber();
 
-        // This uses nTime as part of the file name to try to make it unique
-        for(size_t i = 0; i < 64; i++, nTime--)
-        {
-            char16_t buffer[20];
-
-            PathString16 tempFilePath(pDirectory);
+            EA::IO::Path::PathString16 tempFilePath(pDirectory);
             EA::IO::Path::Append(tempFilePath, pFileName);
-            tempFilePath.operator+=(EAIOItoa16(nTime, buffer));
-            tempFilePath.operator+=(pExtension);
+            tempFilePath +=(Uint32ToAsciiChar16(randomNumber, buffer));
+            tempFilePath +=(pExtension);
 
             uint32_t nSrcPathLength = (uint32_t)tempFilePath.length();
             if (nSrcPathLength > nDestPathLength)
@@ -284,21 +241,13 @@ cache-extension = token [ "=" ( token | quoted-string ) ]
 */
 
 CacheResponseHeaderInfo::CacheResponseHeaderInfo() 
-    : m_ShouldCacheToDisk(false)
-    , m_NoStoreFound(false)
-    , m_PrivateFound(false)
-    , m_PublicFound(false)
-    , m_MaxAgeFound(false)
-    , m_MaxAge(0)
-    , m_ExpiresFound(false)
-    , m_RevalidateFound(false)
-    , m_NoTransformFound(false)
 {   
+	Reset();
 }
 
 void CacheResponseHeaderInfo::Reset()
 {
-    m_ShouldCacheToDisk = false;
+    m_CanCacheToDisk = false;
     m_NoStoreFound = false;
     m_PrivateFound = false;
     m_PublicFound = false;
@@ -338,22 +287,8 @@ bool CacheResponseHeaderInfo::ExtractCacheControlDirectives(const EA::WebKit::Fi
         int32_t result = sscanf( directive8.c_str(), "max-age=%u", &maxAge);
         if(result == 1)
         {
-            if(maxAge < kMinAgeToCache)
-            {
-                exitFlag = true;                // Exit search for we can't or won't cache. 
-            }
-            else
-            {
-                m_MaxAgeFound = true;           // Found a valid max max age to cache (0 is not allowed for example)
-                if(maxAge > kMaxAgeToCache)
-                {
-                    m_MaxAge = kMaxAgeToCache;  // Clamp it to our limits                  
-                }
-                else
-                {
-                    m_MaxAge = maxAge;          // Use the raw value directly
-                }
-            }
+			m_MaxAgeFound = true;           
+			m_MaxAge = maxAge;          
         }
     }
     else if(directive.find(EA_CHAR16("public")) != EA::WebKit::FixedString16_128::npos)
@@ -369,42 +304,25 @@ bool CacheResponseHeaderInfo::ExtractCacheControlDirectives(const EA::WebKit::Fi
         m_NoTransformFound = true;
     }
 
-
-
     return exitFlag;
 }
 
-// Extract the expires directive and clamp it to our min-max
 bool CacheResponseHeaderInfo::ExtractExpiresDirective(const FixedString16_128& directive)
 {
-    bool exitFlag = false;
-
     EA::WebKit::FixedString8_128 header8;    
     EA::WebKit::ConvertToString8(directive, header8);
 
     time_t expireTime = EA::WebKit::ReadDateString(header8.c_str());
-    time_t curTime = (time_t) EA::WebKit::GetTime();
-    time_t deltaTime = expireTime - curTime;
-  
-    if(deltaTime < (time_t) kMinAgeToCache)
-    {
-        exitFlag = true;
-    }
-    else
-    {
-         m_ExpiresFound = true;  // Found a valid expiration to cache
- 
-        // We share the max-age since it can only be used by one or the other 
-        if(deltaTime > (time_t) kMaxAgeToCache)
-        {
-            m_MaxAge = kMaxAgeToCache;                   
-        }
-        else
-        {
-            m_MaxAge = (uint32_t) deltaTime;
-        }
-    }
-    return exitFlag;
+	if(expireTime)
+	{
+		m_ExpiresFound = true;  // Found a valid expiration to cache
+
+		time_t curTime = time(NULL);
+		time_t deltaTime = expireTime - curTime;
+		
+		m_MaxAge = (uint32_t) deltaTime;
+	}
+    return m_ExpiresFound;
 }
 
 bool CacheResponseHeaderInfo::SetDirectivesFromHeader(const EA::WebKit::TransportInfo* pTInfo)
@@ -413,30 +331,27 @@ bool CacheResponseHeaderInfo::SetDirectivesFromHeader(const EA::WebKit::Transpor
     
     Reset();
 
-    if(TransportHandlerDiskCache::GetOpenJobCount() >= (int32_t) TransportHandlerDiskCache::GetMaxJobCount())
-    {
-        // We have too manu open cache file already so we can't handle any more
-        return false;    
-    }
-
-    // Check URI for file protocol or https
     EA::WebKit::FixedString8_128 uri8;
     EA::WebKit::ConvertToString8(*GetFixedString(pTInfo->mURI), uri8);
 
-
+	// There is a bug in the disk cache system due to which if a .html/.htm file is cached, it can't be reloaded from cache. 
+	// Fails with a "-5" error. That needs to be resolved. This is a hack to work around that problem.
+	if(uri8.find(".html")!= EA::WebKit::FixedString16_128::npos || uri8.find(".htm")!= EA::WebKit::FixedString16_128::npos)
+	{
+		return false;
+	}
     // Reject caching paths with possible query 
     if(uri8.find("?") != EA::WebKit::FixedString16_128::npos)
     {
         return false;
     }
 
-    // (Probably not needed as file shemes seem to be filtered out before getting here)
-    if(uri8.find("file://") == 0)
-    {
-        // A file protocol should not be cached as it already is local
-        return false;
-    }
-
+	if(!pTInfo->mpTransportHandler->CanCacheToDisk())// Some protocols should not be cached as they may already be local
+	{
+		EAW_ASSERT_MSG(false,"Original Transport handler does not allow caching." );
+		return false;
+	}
+    
     const HeaderMap& headers = *GetHeaderMap(pTInfo->mHeaderMapIn);
 	EA::WebKit::HeaderMap::const_iterator entry = headers.find(EA_CHAR16("Cache-Control"));
     if (entry != headers.end())
@@ -480,21 +395,20 @@ bool CacheResponseHeaderInfo::SetDirectivesFromHeader(const EA::WebKit::Transpor
         entry = headers.find(EA_CHAR16("Expires"));
         if (entry != headers.end())
         {
-            exitFlag = ExtractExpiresDirective(entry->second.c_str());
-            if(exitFlag)
+            if(!ExtractExpiresDirective(entry->second.c_str()))
                 return false;
         }
     }
     
         
-    // Analyse results
+    // analyze results
     if( (!m_NoStoreFound) || (!m_PrivateFound) )
     {
         if(m_PublicFound)
         {
             if((m_MaxAgeFound) || (m_ExpiresFound))
             {
-                m_ShouldCacheToDisk = true;
+                m_CanCacheToDisk = true;
             }
             else
             {
@@ -507,26 +421,19 @@ bool CacheResponseHeaderInfo::SetDirectivesFromHeader(const EA::WebKit::Transpor
             // however we refuse SSL unless it has the public directive. 
             if(m_MaxAgeFound)
             {
-                m_ShouldCacheToDisk = true;
+                m_CanCacheToDisk = true;
             }
             else if (m_ExpiresFound)
             {
                 // No cache key controls found but there is a valid expired within our limits
-                m_ShouldCacheToDisk = true;
+                m_CanCacheToDisk = true;
             }
         }
     }
-    return m_ShouldCacheToDisk;
+    return m_CanCacheToDisk;
 }
 
 /*****************Implementation of TransportHandlerDiskCache*****************/
-
-uint32_t TransportHandlerDiskCache::sMaxJobCount = kMaxOpenFiles;
-int32_t TransportHandlerDiskCache::sCurFileCount = 0;
-int32_t TransportHandlerDiskCache::sOpenFileCount = 0;
-int32_t TransportHandlerDiskCache::sOpenJobCount = 0;
-char*   TransportHandlerDiskCache::spCacheDownloadBuffer = 0;
-uint32_t TransportHandlerDiskCache::sMinFileSize = 0;
 
 TransportHandlerDiskCache::TransportHandlerDiskCache()
   : mbInitialized(false)
@@ -534,25 +441,27 @@ TransportHandlerDiskCache::TransportHandlerDiskCache()
   , msCacheDirectory ()
   , msIniFileName(kDefaultIniFileName)
   , mDataMap()
-  , mbKeepExpired ( kDefaultKeepExpired )
-  , mnMaxFileCacheSize ( kDefaultFileCacheSize )
-  , mnDefaultExpirationTimeSeconds ( kDefaultExpirationTimeSeconds )
-  , mnCacheAccessCount ( 0 ) 
-  , mnCacheAccessCountSinceLastMaintenance ( 0 )
-  , mnMaxFileCount ( kMaxFileCount )
+  , mnCacheAccessCount (0) 
+  , mnCacheAccessCountSinceLastMaintenance(0)
+  , mCurCachedFilesCount(0)
+  , mCurOpenFilesCount(0)
+  , mpCacheDownloadBuffer(0)
 {
+	
 }
 
 TransportHandlerDiskCache::~TransportHandlerDiskCache()
 {
     Shutdown(NULL);
-//    EAW_ASSERT(TransportHandlerDiskCache::sOpenFileCount == 0);
-//    EAW_ASSERT(TransportHandlerDiskCache::sOpenJobCount == 0);
-
     RemoveCacheDownloadBuffer();
 }
 
-bool TransportHandlerDiskCache::UseFileCache(bool enabled) 
+bool TransportHandlerDiskCache::HandleAvailableToReadFile() const
+{
+	return (mCurOpenFilesCount + kOverHeadFileHandlesReqd) < (int32_t)mDiskCacheInfo.mMaxNumberOfOpenFiles;
+}
+
+bool TransportHandlerDiskCache::EnableDiskCache(bool enabled) 
 { 
     if(enabled)
     {
@@ -573,12 +482,10 @@ bool TransportHandlerDiskCache::UseFileCache(bool enabled)
 
 bool TransportHandlerDiskCache::Init(const char16_t* pScheme)
 {
-    THREAD_SAFE_CALL;
-
     bool bReturnValue = true;
     if(!mbInitialized && mbEnabled)
     {
-         EA::WebKit::FileSystem* pFS = EA::WebKit::GetFileSystem();
+        EA::WebKit::FileSystem* pFS = EA::WebKit::GetFileSystem();
         if(msCacheDirectory.length() && pFS)
         {
              EA::WebKit::FixedString16_128 path16(msCacheDirectory.c_str());
@@ -602,8 +509,6 @@ bool TransportHandlerDiskCache::Init(const char16_t* pScheme)
 
 bool TransportHandlerDiskCache::Shutdown(const char16_t* /*pScheme*/)
 {
-    THREAD_SAFE_CALL;
-
     if(mbInitialized)
     {
         DoPeriodicCacheMaintenance();
@@ -618,20 +523,19 @@ bool TransportHandlerDiskCache::Shutdown(const char16_t* /*pScheme*/)
 // This only works if doing blocking reads.  Async reads would need individual buffers.
 char* TransportHandlerDiskCache::GetCacheDownloadBuffer()
 {
-    if(!spCacheDownloadBuffer)
+    if(!mpCacheDownloadBuffer)
     {
-        spCacheDownloadBuffer = (char*) GetAllocator()->MallocAligned(kCacheDownloadBufferSize,kCacheDownloadBufferAlign,0,0,"Cache file download buffer");
-        EAW_ASSERT(spCacheDownloadBuffer);    
+        mpCacheDownloadBuffer = (char*) GetAllocator()->MallocAligned(kCacheDownloadBufferSize,kCacheDownloadBufferAlign,0,0,"Cache file download buffer");
     }
-    return spCacheDownloadBuffer;
+	return mpCacheDownloadBuffer;
 }
 
 void TransportHandlerDiskCache::RemoveCacheDownloadBuffer()
 {
-    if(spCacheDownloadBuffer)
+    if(mpCacheDownloadBuffer)
     {
-        GetAllocator()->Free(spCacheDownloadBuffer,0);
-        spCacheDownloadBuffer = 0;    
+        GetAllocator()->Free(mpCacheDownloadBuffer,0);
+        mpCacheDownloadBuffer = 0;    
     }
 }
 
@@ -639,6 +543,11 @@ bool TransportHandlerDiskCache::InitJob(TransportInfo* pTInfo, bool& bStateCompl
 {
     using namespace EA::WebKit;
 
+	if(!HandleAvailableToReadFile()) //If no additional handles are available right now, wait for one to become available.
+	{
+		bStateComplete = false;
+		return true;
+	}
     // We return true if we feel we can handle the job.
     FileSystem* pFS = GetFileSystem();
 
@@ -664,12 +573,7 @@ bool TransportHandlerDiskCache::InitJob(TransportInfo* pTInfo, bool& bStateCompl
 			EA::WebKit::ConvertToString8(sFilePathStr, *GetFixedString(pTInfo->mPath));
         }
 
-
-        #ifdef EA_DEBUG
-            mJobCount++;
-        #endif
-        
-        sOpenJobCount++;   
+        ++mCurOpenFilesCount;
         return true;
     }
 
@@ -689,16 +593,13 @@ bool TransportHandlerDiskCache::ShutdownJob(TransportInfo* pTInfo, bool& bStateC
         pAllocator->Free(pFileInfo, sizeof(FileInfo));
 
         pTInfo->mTransportHandlerData = 0;
-        sOpenJobCount--;
-        
-        #ifdef EA_DEBUG
-            mJobCount--;
-        #endif
-      
+        --mCurOpenFilesCount;
+
+		EAW_ASSERT_MSG(mCurOpenFilesCount>= 0, "Negative job count is not possible");
     }
 
    // If we have not other pending jobs, might as well remove the buffer to save memory.
-   if(sOpenJobCount <= 0)
+   if(mCurOpenFilesCount == 0)
        RemoveCacheDownloadBuffer();
 
     bStateComplete = true;
@@ -726,7 +627,6 @@ bool TransportHandlerDiskCache::Connect(TransportInfo* pTInfo, bool& bStateCompl
         {
             if(pFS->OpenFile(pFileInfo->mFileObject, GetFixedString(pTInfo->mPath)->c_str(), FileSystem::kRead, FileSystem::kCDOOpenExisting))
             {
-                TransportHandlerDiskCache::sOpenFileCount++;    // Keep track of number of open files            
                 bReturnValue = true;
             }
             else
@@ -756,11 +656,6 @@ bool TransportHandlerDiskCache::Disconnect(TransportInfo* pTInfo, bool& bStateCo
         if(pFS)
         {
             pFS->CloseFile(pFileInfo->mFileObject);
-            
-            // Note: Close returns void so assume it closed ok anyway.
-            TransportHandlerDiskCache::sOpenFileCount--;
-            EAW_ASSERT(TransportHandlerDiskCache::sOpenFileCount >= 0);
-
             pFS->DestroyFileObject(pFileInfo->mFileObject);
             pFileInfo->mFileObject = FileSystem::kFileObjectInvalid;
         }
@@ -911,19 +806,11 @@ void TransportHandlerDiskCache::InvalidateCachedDataIfRequired(const EA::WebKit:
 
 void TransportHandlerDiskCache::CacheToDisk(const EA::WebKit::FixedString16_128& uriFNameStr, const EA::WebKit::FixedString8_128& mimeStr, const WebCore::SharedBuffer& requestData,const CacheResponseHeaderInfo &cacheHeaderInfo )
 {
-    THREAD_SAFE_CALL;
     // Writes the data in the requestData object to a cache file, and enters the relevant info into the 
     //mDataMap object.
 
-    if((!mbEnabled) || 
-       (!cacheHeaderInfo.PermissionToCacheFile()) ||
-       (sCurFileCount >= (int32_t) mnMaxFileCount))
-            return;
-
-    // Size check to filter out small files
-    uint32_t fileSize = requestData.size();
-    if(fileSize < sMinFileSize) 
-        return;
+    if(!mbEnabled || !cacheHeaderInfo.CanCacheToDisk()) 
+       return;
 
     bool bSuccess = false;
 
@@ -937,7 +824,7 @@ void TransportHandlerDiskCache::CacheToDisk(const EA::WebKit::FixedString16_128&
     newInfo.mnDataSize     = 0;
     newInfo.mnLocation     = 0;
     newInfo.mnTimeoutSeconds = 0;
-    newInfo.mnTimeCreated  = GetHTTPTime ();
+    newInfo.mnTimeCreated  = GetTimeInSeconds ();
     newInfo.mnTimeLastUsed = UINT32_MAX;    // trick so FindLRU will never find un-committed items
     newInfo.mnTimeTimeout  = newInfo.mnTimeCreated;
     newInfo.msCachedFileName = uriFNameStr.c_str();
@@ -953,16 +840,21 @@ void TransportHandlerDiskCache::CacheToDisk(const EA::WebKit::FixedString16_128&
     {
         newInfo.msCachedFileName = uriFNameStr.c_str();
         validName = GetNewCacheFileName ( mimeType, mimeSubtype, newInfo.msCachedFileName);
-	    tmp +=newInfo.msCachedFileName;
+	    if(validName)
+			tmp +=newInfo.msCachedFileName;
     }
-    // Questions: Should we refuse if file name and path is too long?
+    if(!validName)
+	{
+		EAW_ASSERT_MSG(validName,"Could not generate a valid Name. Not caching.");
+		return;
+	}
     
     EA::WebKit::FixedString8_128 pathStr;
 	EA::WebKit::ConvertToString8( tmp, pathStr );
 
     // We return true if we feel we can handle the job.
     FileSystem* pFS = GetFileSystem();
-    if(pFS != NULL && validName)
+    if(pFS != NULL)
     {
         FileInfo fileInfo;
 
@@ -976,21 +868,19 @@ void TransportHandlerDiskCache::CacheToDisk(const EA::WebKit::FixedString16_128&
 
                 if(bSuccess)
                 {
-                    ++sCurFileCount;
+                    ++mCurCachedFilesCount;
                     newInfo.mnLocation = kCacheLocationDisk;
                     newInfo.mnDataSize = requestData.size();
                     if((cacheHeaderInfo.m_ExpiresFound) || (cacheHeaderInfo.m_MaxAgeFound))
                     {
-
                         newInfo.mnTimeoutSeconds = cacheHeaderInfo.m_MaxAge;
                     }
                     else
                     {
-                        EAW_ASSERT(0);  // Should normally not get here
-                        newInfo.mnTimeoutSeconds = kDefaultExpirationTimeSeconds;
+                        EAW_ASSERT_MSG(false,"Trying to cache a file without expire or max age header. Should not get here."); 
                     }
                     newInfo.mnTimeTimeout = newInfo.mnTimeCreated + newInfo.mnTimeoutSeconds;
-                    newInfo.mnTimeLastUsed  = GetHTTPTime ();
+                    newInfo.mnTimeLastUsed  = GetTimeInSeconds ();
                     newInfo.mnRevalidate = cacheHeaderInfo.m_RevalidateFound;
                 }
             }
@@ -998,6 +888,7 @@ void TransportHandlerDiskCache::CacheToDisk(const EA::WebKit::FixedString16_128&
         }
     }
 
+	EAW_ASSERT_MSG(bSuccess,"Failed to Write File successfully");
     if ( !bSuccess )  // failed to write cache file, so erase the cache entry
         mDataMap.erase( pKey );
 
@@ -1051,45 +942,37 @@ bool TransportHandlerDiskCache::IniFileCallbackFunction(const char16_t* /*pKey*/
             cacheInfo.mnChecksum            = AtoU32(sFields[8].c_str());
             cacheInfo.mnRevalidate          = (bool) AtoU32(sFields[9].c_str());
 
-            if(cacheInfo.mnDataSize <= kMaxPracticalFileSize)
-            {
-                const uint32_t nTimeNow = (uint32_t)GetHTTPTime();
+			const uint32_t nTimeNow = (uint32_t)GetTimeInSeconds();
 
-                if(cacheInfo.mnTimeCreated > nTimeNow)  // Just fix the error.
-                    cacheInfo.mnTimeCreated = (uint32_t)nTimeNow;
+			if(cacheInfo.mnTimeCreated > nTimeNow)  // Just fix the error.
+				cacheInfo.mnTimeCreated = (uint32_t)nTimeNow;
 
-                if(cacheInfo.mnTimeLastUsed > nTimeNow) // Just fix the error
-                    cacheInfo.mnTimeLastUsed = (uint32_t)nTimeNow;
+			if(cacheInfo.mnTimeLastUsed > nTimeNow) // Just fix the error
+				cacheInfo.mnTimeLastUsed = (uint32_t)nTimeNow;
 
-                if(cacheInfo.mnTimeTimeout > nTimeNow)  // If file has not expired...
-                {
-                    EA::IO::Path::PathString16 sFilePath(pFileCacheHandler->msCacheDirectory.c_str());
-                    EA::IO::Path::Join(sFilePath, cacheInfo.msCachedFileName.c_str());
+			if(cacheInfo.mnTimeTimeout > nTimeNow)  // If file has not expired...
+			{
+				EA::IO::Path::PathString16 sFilePath(pFileCacheHandler->msCacheDirectory.c_str());
+				EA::IO::Path::Join(sFilePath, cacheInfo.msCachedFileName.c_str());
 
-                    EA::WebKit::FileSystem* pFS = EA::WebKit::GetFileSystem();
-                    EA::WebKit::FixedString16_128 path16(sFilePath.c_str());
-                    EA::WebKit::FixedString8_128 path8;
-                    EA::WebKit::ConvertToString8(path16, path8);
+				EA::WebKit::FileSystem* pFS = EA::WebKit::GetFileSystem();
+				EA::WebKit::FixedString16_128 path16(sFilePath.c_str());
+				EA::WebKit::FixedString8_128 path8;
+				EA::WebKit::ConvertToString8(path16, path8);
 
-                     //FileSystem* pFS = GetFileSystem();
-                    if( (pFS) && (pFS->FileExists(path8.c_str())) )
-                    {
-                        EA::WebKit::FixedString8_128 sField8;
-                        EA::WebKit::ConvertToString8(sFields[0], sField8);
-                        pFileCacheHandler->mDataMap.insert(DataMap::value_type(sField8, cacheInfo));
-                        ++sCurFileCount;                                            
-                    }
-                }
-                else
-                {
-                    pFileCacheHandler->RemoveCachedFile(cacheInfo.msCachedFileName.c_str());
-                }
-            }
-            else
-            {
-                EAW_ASSERT_MSG(cacheInfo.mnDataSize > kMaxPracticalFileSize, "TransportHandlerDiskCache::IniFileCallbackFunction: File appears to be impossibly large.\n");
-                pFileCacheHandler->RemoveCachedFile(cacheInfo.msCachedFileName.c_str());
-            }
+				//FileSystem* pFS = GetFileSystem();
+				if( (pFS) && (pFS->FileExists(path8.c_str())) )
+				{
+					EA::WebKit::FixedString8_128 sField8;
+					EA::WebKit::ConvertToString8(sFields[0], sField8);
+					pFileCacheHandler->mDataMap.insert(DataMap::value_type(sField8, cacheInfo));
+					++(pFileCacheHandler->mCurCachedFilesCount);                                            
+				}
+			}
+			else
+			{
+				pFileCacheHandler->RemoveCachedFile(cacheInfo.msCachedFileName.c_str());
+			}
         }
         else
         {
@@ -1106,11 +989,14 @@ bool TransportHandlerDiskCache::SetDiskCacheParams(const EA::WebKit::DiskCacheIn
 	if(createdDir)
 	{
 		SetMaxCacheSize(diskCacheInfo.mDiskCacheSize);
-		SetMaxFileCount(diskCacheInfo.mMaxNumberOfCachedFiles);
-		SetMaxJobCount(diskCacheInfo.mMaxNumberOfOpenFiles);
-		SetMinFileSize(diskCacheInfo.mMinFileSizeToCache);
-	
-		UseFileCache(true);
+		if(diskCacheInfo.mMaxNumberOfOpenFiles < kOverHeadFileHandlesReqd+1) //+1 to read
+		{
+			EAW_ASSERT_FORMATTED(false,"Disabling disk cache. Minimum number of file handles required - %u. Provided - %u - Recommended - 24. ",kOverHeadFileHandlesReqd+1,diskCacheInfo.mMaxNumberOfOpenFiles);
+			return false;
+		}
+
+		mDiskCacheInfo.mMaxNumberOfOpenFiles = diskCacheInfo.mMaxNumberOfOpenFiles;
+		EnableDiskCache(true);
 	}
 
 	return createdDir && mbEnabled;
@@ -1119,26 +1005,8 @@ bool TransportHandlerDiskCache::SetDiskCacheParams(const EA::WebKit::DiskCacheIn
 
 void TransportHandlerDiskCache::GetDiskCacheUsage(EA::WebKit::DiskCacheUsageInfo& diskCacheUsageInfo)
 {
-	diskCacheUsageInfo.mCurrentNumberOfCachedFiles = TransportHandlerDiskCache::sCurFileCount;
-	diskCacheUsageInfo.mCurrentNumberOfOpenFiles = TransportHandlerDiskCache::sOpenFileCount;
-}
-
-void TransportHandlerDiskCache::SetDefaultExpirationTime(uint32_t nDefaultExpirationTimeSeconds)
-{
-    // We don't worry about thread safety here, as this function is only to be 
-    // called from a single thread upon init.
-
-    mnDefaultExpirationTimeSeconds = nDefaultExpirationTimeSeconds;
-}
-
-const EA::WebKit::FixedString16_128& TransportHandlerDiskCache::GetCacheDirectory()
-{
-    /// The returned directory will end with a trailing path separator. 
- 
-    // We don't worry about thread safety here, as this value is assumed
-    // to be set once upon init and not changed.
-
-    return msCacheDirectory;
+	diskCacheUsageInfo.mCurrentNumberOfCachedFiles = mCurCachedFilesCount;
+	diskCacheUsageInfo.mCurrentNumberOfOpenFiles = mCurOpenFilesCount;
 }
 
 bool TransportHandlerDiskCache::SetCacheDirectory(const char16_t* pCacheDirectory)
@@ -1200,15 +1068,6 @@ bool TransportHandlerDiskCache::SetCacheDirectory(const char8_t* pCacheDirectory
 
 	EA::WebKit::ConvertToString16(cacheDir8, cacheDir16);
 	return SetCacheDirectory(cacheDir16.c_str());
-/*
-    int pathLen = EA::Internal::Strlen(pCacheDirectory);
-    EA::WebKit::FixedString16_128 dir16;
-    dir16.reserve(pathLen);
-    dir16.resize(pathLen);
-    int writeCount = EA::Internal::Strlcpy(&dir16[0], pCacheDirectory, dir16.max_size(), pathLen); (void)writeCount;
-    EAW_ASSERT(writeCount == pathLen);
-    return SetCacheDirectory(dir16.c_str());
-	*/
 }
 
 void TransportHandlerDiskCache::GetCacheDirectory(EA::WebKit::FixedString16_128& cacheDirectory)
@@ -1225,72 +1084,18 @@ void TransportHandlerDiskCache::GetCacheDirectory(EA::WebKit::FixedString8_128& 
     EAW_ASSERT(writeCount == (int) pathLen);
 }
 
-const EA::WebKit::FixedString16_128& TransportHandlerDiskCache::GetCacheIniFileName()
-{
-    // We don't worry about thread safety here, as this value is assumed
-    // to be set once upon init and not changed.
-
-    return msIniFileName;
-}
-
-bool TransportHandlerDiskCache::SetCacheIniFileName(const char16_t* pCacheIniFileName)
-{
-    // Sets the file name only. File is always put in same dir as ini file path.
-    // The supplied directory string must be of length <= the maximum
-    // designated path length for the given platform; otherwise this 
-    // function will fail.
-
-    // We don't worry about thread safety here, as this function is only to be 
-    // called from a single thread upon init.
-    EA::IO::Path::PathString16 path(msCacheDirectory.data(), msCacheDirectory.length());
-    EA::IO::Path::Join(path, msIniFileName.c_str());
-
-    FileSystem* pFS = GetFileSystem();
-    EA::WebKit::FixedString16_128 path16(path.c_str()); 
-    EA::WebKit::FixedString8_128 path8;    
-    EA::WebKit::ConvertToString8(path16, path8);
-    if( (pFS) && (pFS->FileExists(path8.c_str())) )
-        pFS->RemoveFile(path8.c_str());
-
-    msIniFileName = pCacheIniFileName;
-    return true;
-}
-
-void TransportHandlerDiskCache::SetMaxFileCount(const uint32_t maxFileCount)
-{
-    mnMaxFileCount = maxFileCount;
-
-    if(sCurFileCount > (int32_t) maxFileCount)
-        DoPeriodicCacheMaintenance();
-}
-
-void TransportHandlerDiskCache::SetMaxJobCount(const uint32_t count)
-{
-    sMaxJobCount = count;
-}
-
 void TransportHandlerDiskCache::SetMaxCacheSize(uint32_t nCacheSize)
 {
-    // We don't worry about thread safety here, as this function is only to be 
-    // called from a single thread upon init.
-
-    uint32_t tmp = mnMaxFileCacheSize;
+    uint32_t oldDiskCacheSize = mDiskCacheInfo.mDiskCacheSize;
     
-    mnMaxFileCacheSize = nCacheSize;
-
-    if(tmp > mnMaxFileCacheSize)
+	mDiskCacheInfo.mDiskCacheSize = nCacheSize;
+    
+	if(oldDiskCacheSize > mDiskCacheInfo.mDiskCacheSize)
         DoPeriodicCacheMaintenance();
-}
-
-void TransportHandlerDiskCache::SetMinFileSize(const uint32_t size)
-{
-    sMinFileSize = size;
 }
 
 bool TransportHandlerDiskCache::IsCachedDataValid( const EA::WebKit::FixedString16_128& pURLTxt )
 {
-    THREAD_SAFE_CALL;
-
     if(!mbEnabled)
         return false;
 
@@ -1301,15 +1106,12 @@ bool TransportHandlerDiskCache::IsCachedDataValid( const EA::WebKit::FixedString
 
 bool TransportHandlerDiskCache::IsCachedDataValid( const EA::WebKit::FixedString8_128& pURLTxt )
 {
-    THREAD_SAFE_CALL;
-
     if(!mbEnabled)
         return false;
 
     DataMap::iterator itSought(mDataMap.find ( pURLTxt ));
     if (itSought != mDataMap.end () )
     {
-
         return IsCachedDataValid ( (*itSought).second );
     }
 
@@ -1326,7 +1128,7 @@ bool TransportHandlerDiskCache::IsCachedDataValid( const Info& cacheInfo )
     //    return true
 
     if ( (cacheInfo.mnLocation & kCacheLocationPending) == 0 ) {
-        return cacheInfo.mnTimeTimeout > (uint32_t) GetHTTPTime (); // Question: Why in the world would time ever be negative?
+        return cacheInfo.mnTimeTimeout > (uint32_t) GetTimeInSeconds (); // Question: Why in the world would time ever be negative?
     }
 
     return false;
@@ -1337,8 +1139,6 @@ bool TransportHandlerDiskCache::GetCachedDataInfo(const EA::WebKit::FixedString8
     // Low level accessor. Gets copy of the data. Gets copy of data. Does *not* do expiration checks,
     // and so may return information for data that has expired. This is by design, as this function's
     // purpose is to allow the interpretation of the cached data as it currently is.
-    THREAD_SAFE_CALL;
-
     if(!mbEnabled)
         return false;
 
@@ -1356,8 +1156,6 @@ bool TransportHandlerDiskCache::GetCachedDataInfo(const EA::WebKit::FixedString8
 
 void TransportHandlerDiskCache::ClearCache()
 {
-    THREAD_SAFE_CALL;
-
     mnCacheAccessCount++;
 
     DataMap::iterator iter;
@@ -1374,8 +1172,6 @@ void TransportHandlerDiskCache::ClearCache()
 bool TransportHandlerDiskCache::RemoveCachedData(const EA::WebKit::FixedString8_128& pKey)
 {
     // Consider: make an internal version of this that works on Info
-    THREAD_SAFE_CALL;
-
     mnCacheAccessCount++;
 
     // To consider: Make this periodic maintenance based on time rather than access count.
@@ -1410,13 +1206,13 @@ bool TransportHandlerDiskCache::GetNewCacheFileName( int nMIMEType, int nMIMESub
 
     // No thread safety checks for this method. It doesn't touch class data.
 
-    char16_t pExtension[EA::IO::kMaxPathLength] = { '\0' };
+	char16_t pExtension[EA::WebKit::FileSystem::kMaxPathLength] = { '\0' };
 
-    MIMETypesToFileExtension ( MIMEType(nMIMEType), MIMEType(nMIMESubtype), pExtension, EA::IO::kMaxPathLength );
+	MIMETypesToFileExtension ( MIMEType(nMIMEType), MIMEType(nMIMESubtype), pExtension, EA::WebKit::FileSystem::kMaxPathLength );
 
     EA::Internal::Strcat ( pExtension, kCachedFileExtension );
 
-    char16_t pFilePath[EA::IO::kMaxPathLength];
+	char16_t pFilePath[EA::WebKit::FileSystem::kMaxPathLength];
 
     const bool bResult = MakeTempPathName(pFilePath, msCacheDirectory.c_str(), NULL, pExtension);
 
@@ -1444,8 +1240,6 @@ void TransportHandlerDiskCache::ClearCacheMap()
 bool TransportHandlerDiskCache::UpdateCacheIniFile()
 {
     // Writes our cache information to the ini file used to store it.
-    THREAD_SAFE_INNER_CALL;
-
     bool returnFlag = false;
 
     if(!mbEnabled)
@@ -1644,7 +1438,7 @@ bool TransportHandlerDiskCache::RemoveCachedFile(const char16_t* pFileName)
         FileSystem* pFS = GetFileSystem();
         if(pFS)
         {
-            --sCurFileCount;
+            --mCurCachedFilesCount;
             return (pFS->RemoveFile(path8.c_str()) );
         }
     }
@@ -1683,8 +1477,6 @@ bool TransportHandlerDiskCache::RemoveUnusedCachedFiles()
 TransportHandlerDiskCache::DataMap::iterator TransportHandlerDiskCache::FindLRUItem()
 {
 //   find oldest item in location
-    THREAD_SAFE_INNER_CALL;
-
     DataMap::iterator itCur(mDataMap.begin()), itEnd(mDataMap.end());
     DataMap::iterator itSought ( itEnd );
     uint32_t nOldestTime ( UINT32_MAX ); // Note: pending resources have last access == UINT32_MAX so they should never be chosen
@@ -1703,8 +1495,6 @@ TransportHandlerDiskCache::DataMap::iterator TransportHandlerDiskCache::FindLRUI
 
 void TransportHandlerDiskCache::DoPeriodicCacheMaintenance()
 {
-    THREAD_SAFE_INNER_CALL;
-
     if(!mbEnabled)
         return;
 
@@ -1715,42 +1505,40 @@ void TransportHandlerDiskCache::DoPeriodicCacheMaintenance()
 
     mnCacheAccessCountSinceLastMaintenance = 0;
 
-    if ( !mbKeepExpired ) {
-        // Need to check expiration dates of data map entries.
-        const uint32_t nTimeNow = (uint32_t)GetHTTPTime();
+	// Need to check expiration dates of data map entries.
+	const uint32_t nTimeNow = (uint32_t)GetTimeInSeconds();
 
-        for(DataMap::iterator it = mDataMap.begin(); it != mDataMap.end(); ) // For each hash map entry, add an ini file section for it.
-        {
-            const Info& cacheInfo = (*it).second;
+	for(DataMap::iterator it = mDataMap.begin(); it != mDataMap.end(); ) // For each hash map entry, add an ini file section for it.
+	{
+		const Info& cacheInfo = (*it).second;
 
-            if ( (nTimeNow >= cacheInfo.mnTimeTimeout) 
-                && ( ( cacheInfo.mnLocation & kCacheLocationPending ) == 0 ) ) 
-                // If the cached item has expired...
-                // && don't delete files that have not been committed
-            {
-                if ( cacheInfo.mnLocation & kCacheLocationDisk ) {
-                    RemoveCachedFile(cacheInfo.msCachedFileName.c_str());   // Delete File cached data if present.
-                    bDiskFilesChanged = true;
-                }
-                it = mDataMap.erase(it);
-            }
-            else
-            {
-                if ( cacheInfo.mnLocation & kCacheLocationDisk )
-                {
-                    ++fileCount;
-                    nFileCacheMemoryUsage += cacheInfo.mnDataSize;
-                }
-                ++it;
-            }
-        }
-    }
+		if ( (nTimeNow >= cacheInfo.mnTimeTimeout) 
+			&& ( ( cacheInfo.mnLocation & kCacheLocationPending ) == 0 ) ) 
+			// If the cached item has expired...
+			// && don't delete files that have not been committed
+		{
+			if ( cacheInfo.mnLocation & kCacheLocationDisk ) {
+				RemoveCachedFile(cacheInfo.msCachedFileName.c_str());   // Delete File cached data if present.
+				bDiskFilesChanged = true;
+			}
+			it = mDataMap.erase(it);
+		}
+		else
+		{
+			if ( cacheInfo.mnLocation & kCacheLocationDisk )
+			{
+				++fileCount;
+				nFileCacheMemoryUsage += cacheInfo.mnDataSize;
+			}
+			++it;
+		}
+	}
 
     // OK, now we've purged any old files and know how much File 
     // space is being taken up by the cached data. We should do some purges
     // of the first-expiring data if we are using up too much memory.
 
-    while((nFileCacheMemoryUsage > mnMaxFileCacheSize) && (fileCount > mnMaxFileCount))
+    while((nFileCacheMemoryUsage > mDiskCacheInfo.mDiskCacheSize))
     {
         DataMap::iterator itLRU ( FindLRUItem() );
         if ( itLRU != mDataMap.end () ) 
@@ -1768,7 +1556,7 @@ void TransportHandlerDiskCache::DoPeriodicCacheMaintenance()
         }
     }
 
-    sCurFileCount = fileCount;
+    mCurCachedFilesCount = fileCount;
 
     if ( bDiskFilesChanged )
     	UpdateCacheIniFile();

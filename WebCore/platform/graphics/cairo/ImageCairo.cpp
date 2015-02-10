@@ -2,7 +2,7 @@
  * Copyright (C) 2004, 2005, 2006 Apple Computer, Inc.  All rights reserved.
  * Copyright (C) 2007 Alp Toker <alp@atoker.com>
  * Copyright (C) 2009 Dirk Schulze <krit@webkit.org>
- * Copyright (C) 2012 Electronic Arts, Inc. All rights reserved.
+ * Copyright (C) 2012, 2013 Electronic Arts, Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -46,7 +46,7 @@
 
 //+EAWebKitChange
 //5/21/2012
-#if PLATFORM(EA)
+#if ENABLE(IMAGE_COMPRESSION)
 #include "ImageCompressionEA.h" 
 #endif
 
@@ -63,7 +63,7 @@ bool FrameData::clear(bool clearMetadata)
 
 //+EAWebKitChange
 //5/17/2012
-#if PLATFORM(EA)
+#if ENABLE(IMAGE_COMPRESSION)
     // When using image compression, we need to release the buffer that holds the compressed image.
     if (m_compressedDataBuffer)
     {
@@ -133,7 +133,7 @@ void BitmapImage::draw(GraphicsContext* context, const FloatRect& dst, const Flo
 
 //+EAWebKitChange
 //5/30/2012
-#if PLATFORM(EA)
+#if ENABLE(IMAGE_COMPRESSION)
     // Check if this is a compressed surface. 
     const void* pCompressedSurfaceUserData = cairo_surface_get_user_data (image, (cairo_user_data_key_t*) ImageCompressionGetUserDataKey());
 #endif
@@ -144,7 +144,7 @@ void BitmapImage::draw(GraphicsContext* context, const FloatRect& dst, const Flo
         
 //+EAWebKitChange
 //5/30/2012
-#if PLATFORM(EA)
+#if ENABLE(IMAGE_COMPRESSION)
         if (pCompressedSurfaceUserData)
             cairo_surface_destroy(image);
 #endif
@@ -168,7 +168,7 @@ void BitmapImage::draw(GraphicsContext* context, const FloatRect& dst, const Flo
 
 //+EAWebKitChange
 //5/30/2012
-#if PLATFORM(EA)
+#if ENABLE(IMAGE_COMPRESSION)
     if (pCompressedSurfaceUserData)
         cairo_surface_destroy(image);   
 #endif
@@ -190,7 +190,7 @@ void Image::drawPattern(GraphicsContext* context, const FloatRect& tileRect, con
 
 //+EAWebKitChange
 //5/30/2012
-#if PLATFORM(EA)
+#if ENABLE(IMAGE_COMPRESSION)
     // Check if this is a compressed surface.
     const void* pCompressedSurfaceUserData = cairo_surface_get_user_data (image, (cairo_user_data_key_t*) ImageCompressionGetUserDataKey());
     if (pCompressedSurfaceUserData)
@@ -213,7 +213,7 @@ void BitmapImage::checkForSolidColor()
 
 //+EAWebKitChange
 //5/30/2012
-#if PLATFORM(EA)
+#if ENABLE(IMAGE_COMPRESSION)
     // Check if this is a compressed surface. 
     const void* pCompressedSurfaceUserData = cairo_surface_get_user_data (frameSurface, (cairo_user_data_key_t*) ImageCompressionGetUserDataKey());
 #endif
@@ -229,7 +229,7 @@ void BitmapImage::checkForSolidColor()
     {
     //+EAWebKitChange
     //5/30/2012
-    #if PLATFORM(EA)
+	#if ENABLE(IMAGE_COMPRESSION)
         if (pCompressedSurfaceUserData)
             cairo_surface_destroy(frameSurface);   
     #endif
@@ -243,7 +243,7 @@ void BitmapImage::checkForSolidColor()
 
 //+EAWebKitChange
 //5/30/2012
-#if PLATFORM(EA)
+#if ENABLE(IMAGE_COMPRESSION)
     if (pCompressedSurfaceUserData)
         cairo_surface_destroy(frameSurface);
 #endif

@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2006 Samuel Weinig (sam.weinig@gmail.com)
  * Copyright (C) 2004, 2005, 2006, 2008 Apple Inc. All rights reserved.
- * Copyright (C) 2012 Electronic Arts, Inc. All rights reserved.
+ * Copyright (C) 2012, 2013 Electronic Arts, Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -39,7 +39,7 @@
 
 //+EAWebKitChange
 //5/22/2012 - Added image compression support.
-#if PLATFORM(EA)
+#if ENABLE(IMAGE_COMPRESSION)
     #include "ImageCompressionEA.h"
     #include "ImageDecoder.h"
     #include <EAWebKit/EAWebKit.h>
@@ -90,13 +90,15 @@ void BitmapImage::destroyDecodedData(bool destroyAll)
   
 //+EAWebKitChange
 //5/23/2012
-    int releasedSize = 0;
+#if ENABLE(IMAGE_COMPRESSION)
+	int releasedSize = 0;
+#endif
     const size_t clearBeforeFrame = destroyAll ? m_frames.size() : m_currentFrame;
     for (size_t i = 0; i < clearBeforeFrame; ++i) {
         // The underlying frame isn't actually changing (we're just trying to
         // save the memory for the framebuffer data), so we don't need to clear
         // the metadata.
-#if PLATFORM(EA)
+#if ENABLE(IMAGE_COMPRESSION)
         // We need to collect the actual compression buffer size used by each frame when using compression.
         // If not compressed, only collect the frame bytes if a frame was set.
         if (m_frames[i].m_compressedSize)
@@ -111,7 +113,11 @@ void BitmapImage::destroyDecodedData(bool destroyAll)
         if (m_frames[i].clear(false))
           ++framesCleared;
     }
-    destroyMetadataAndNotify(framesCleared, releasedSize);
+#if ENABLE(IMAGE_COMPRESSION)
+	destroyMetadataAndNotify(framesCleared, releasedSize);
+#else
+	destroyMetadataAndNotify(framesCleared);
+#endif
 //-EAWebKitChange 
 
     m_source.clear(destroyAll, clearBeforeFrame, data(), m_allDataReceived);
@@ -128,6 +134,7 @@ void BitmapImage::destroyDecodedDataIfNecessary(bool destroyAll)
 }
 //+EAWebKitChange
 //5/23/2012 - Added releasedSize option for compression support as the buffer sizes can be variable.
+#if ENABLE(IMAGE_COMPRESSION)
 void BitmapImage::destroyMetadataAndNotify(int framesCleared, int releasedSize)
 {
     m_isSolidColor = false;
@@ -143,6 +150,23 @@ void BitmapImage::destroyMetadataAndNotify(int framesCleared, int releasedSize)
     if (deltaBytes && imageObserver())
         imageObserver()->decodedSizeChanged(this, deltaBytes);
 }
+#else
+void BitmapImage::destroyMetadataAndNotify(int framesCleared)
+{
+	m_isSolidColor = false;
+	m_checkedForSolidColor = false;
+	invalidatePlatformData();
+
+	int deltaBytes = (framesCleared * -frameBytes(m_size));
+	m_decodedSize += deltaBytes;
+	if (framesCleared > 0) {
+		deltaBytes -= m_decodedPropertiesSize;
+		m_decodedPropertiesSize = 0;
+	}
+	if (deltaBytes && imageObserver())
+		imageObserver()->decodedSizeChanged(this, deltaBytes);
+}
+#endif
 //-EAWebKitChange
 
 void BitmapImage::cacheFrame(size_t index)
@@ -170,13 +194,16 @@ void BitmapImage::cacheFrame(size_t index)
 
 //+EAWebKitChange
 //5/22/2012
-        size_t compressSize = 0;
-#if PLATFORM(EA)
-        // Check if we can compress this frame (don't compress animation for now because giff buffer reuse issues).    
+#if ENABLE(IMAGE_COMPRESSION)
+		size_t compressSize = 0;
+        // Check if we can compress this frame (don't compress animation for now because gif buffer reuse issues).    
         if ((m_frames[index].m_isComplete) &&  (!shouldAnimate()))
             compressSize = compressFrame(index);
-#endif        
-        int deltaBytes = compressSize ? compressSize : frameBytes(frameSize);
+        
+		int deltaBytes = compressSize ? compressSize : frameBytes(frameSize);
+#else
+		int deltaBytes = frameBytes(frameSize);
+#endif
 //-EAWebKitChange
 
         m_decodedSize += deltaBytes;
@@ -241,15 +268,16 @@ bool BitmapImage::dataChanged(bool allDataReceived)
 //+EAWebKitChange
 //5/23/2012
     // We need to get the compression buffer size that will be released before we clear.
-    int releasedSize = 0;
-#if PLATFORM(EA)
+#if ENABLE(IMAGE_COMPRESSION)
+	int releasedSize = 0;
     if (!m_frames.isEmpty())
     {
         releasedSize -= m_frames[m_frames.size() - 1].m_compressedSize;
     }
-#endif
-
     destroyMetadataAndNotify((!m_frames.isEmpty() && m_frames[m_frames.size() - 1].clear(true)) ? 1 : 0, releasedSize);
+#else
+	destroyMetadataAndNotify((!m_frames.isEmpty() && m_frames[m_frames.size() - 1].clear(true)) ? 1 : 0);
+#endif
 //-EAWebKitChange 
 
     // Feed all the data we've seen so far to the image decoder.
@@ -299,12 +327,12 @@ NativeImagePtr BitmapImage::frameAtIndex(size_t index)
 
 //+EAWebKitChange
 //5/22/2012 - Added Compression support.   
-#if PLATFORM (EA)    
+#if ENABLE(IMAGE_COMPRESSION)    
     if (index >= m_frames.size() || (!m_frames[index].m_frame && !m_frames[index].m_compressedDataBuffer))
         cacheFrame(index);
     return decompressFrame(index);
 #else
-    if (index >= m_frames.size() || (!m_frames[index].m_frame))
+    if (index >= m_frames.size() || !m_frames[index].m_frame)
         cacheFrame(index);
 
     return m_frames[index].m_frame;
@@ -530,7 +558,7 @@ bool BitmapImage::internalAdvanceAnimation(bool skippingFrames)
 
 //+EAWebKitChange
 //5/17/2012
-#if PLATFORM(EA)
+#if ENABLE(IMAGE_COMPRESSION)
 NativeImagePtr BitmapImage::decompressFrame(size_t index)
 {
     FrameData& frame = m_frames[index];  

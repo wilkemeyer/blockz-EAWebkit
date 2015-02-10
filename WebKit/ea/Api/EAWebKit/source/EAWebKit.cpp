@@ -130,7 +130,7 @@ static EAWebKitClient*				spEAWebKitClient = NULL;
 static ITextSystem*                 spTextSystem = NULL;
 static SocketTransportHandler*		spSocketTransportHandler = NULL;
 static bool							ownsSocketTransportHandler = false;
-static RAMCacheInfo					sRamCacheInfo;
+static RAMCacheInfo					ramCacheUserPref;
 
 // Some globals instead of statics as we need to use them in the JavaScriptCore project directly.
 EAWebKitTimerCallback		        gpTimerCallback = NULL;
@@ -537,14 +537,17 @@ void EAWebKitLib::SetThemeParameters(const EA::WebKit::ThemeParameters& themePar
 	EA::WebKit::SetThemeParameters(themeParams);  
 }
 
-void DebugLogCallback(const eastl::string8 &message, bool shouldAssert)
+void DebugLogCallback(const eastl::string8 &origMessage, bool shouldAssert)
 {
-    if (EAWebKitClient *pClient = GetEAWebKitClient())
+    eastl::string8 modifiedMessage("EAWebKit:"); // We don't spit out too much log so its okay to create a temporary string here
+	modifiedMessage += origMessage;
+
+	if (EAWebKitClient *pClient = GetEAWebKitClient())
     {
         DebugLogInfo dli;
         dli.mpView = NULL;
         dli.mpUserData = NULL;
-        dli.mpLogText = message.c_str();
+        dli.mpLogText = modifiedMessage.c_str();
         dli.mType = shouldAssert ? kDebugLogAssertion : kDebugLogWebCore;
         
         pClient->DebugLog(dli);
@@ -553,10 +556,10 @@ void DebugLogCallback(const eastl::string8 &message, bool shouldAssert)
 	else
 	{
 #if defined(_MSC_VER)
-		OutputDebugStringA(message.c_str());
+		OutputDebugStringA(modifiedMessage.c_str());
 		OutputDebugStringA("\n");
 #else
-		printf("%s", message.c_str());
+		printf("%s", modifiedMessage.c_str());
 		printf("\n");
 #endif
 	}
@@ -747,6 +750,10 @@ void Tick()
 
 	WebCore::fireTimerIfNeeded();
 
+	RAMCacheUsageInfo currentUsage;
+	GetRAMCacheUsage(currentUsage);
+	if(currentUsage.mImagesBytes+currentUsage.mScriptsBytes+currentUsage.mFontsBytes+currentUsage.mCssStyleSheetsBytes > ramCacheUserPref.mTotalBytes)
+		WebCore::memoryCache()->prune();
 
 	NOTIFY_PROCESS_STATUS(EA::WebKit::kVProcessTypeLibTick, EA::WebKit::kVProcessStatusEnded, 0);
 }
@@ -841,8 +848,11 @@ void CookiesReceived(TransportInfo* pTInfo)
 
 bool SetDiskCacheUsage(const EA::WebKit::DiskCacheInfo& diskCacheInfo)
 {
-	if (!diskCacheInfo.mDiskCacheDirectory) 
+	if (!diskCacheInfo.mDiskCacheDirectory || !diskCacheInfo.mDiskCacheDirectory[0] ) 
+	{
+		EAW_ASSERT_MSG(false,"Disk cache disabled. Invalid disk cache directory.");
 		return false;
+	}
 
 	const char8_t* pDiskCacheDir = diskCacheInfo.mDiskCacheDirectory;
     EA::IO::Path::PathString8 fullPath = GetFullPath(pDiskCacheDir, true);
@@ -870,6 +880,12 @@ void GetDiskCacheUsage(EA::WebKit::DiskCacheUsageInfo& diskCacheUsageInfo)
 
 void SetCookieUsage(const EA::WebKit::CookieInfo& cookieInfo)
 {
+	if (!cookieInfo.mCookieFilePath || !cookieInfo.mCookieFilePath[0] ) 
+	{
+		EAW_ASSERT_MSG(false,"Cookies persistence disabled. Invalid cookie file path.");
+		return;
+	}
+	
 	const char8_t* pCookieFilePath = cookieInfo.mCookieFilePath;
 
 	EA::IO::Path::PathString8 fullPath;
@@ -891,8 +907,9 @@ void SetCookieUsage(const EA::WebKit::CookieInfo& cookieInfo)
 
 void SetRAMCacheUsage(const RAMCacheInfo& ramCacheInfo)
 {
-    sRamCacheInfo = ramCacheInfo;
+    ramCacheUserPref = ramCacheInfo;
 	WebCore::memoryCache()->setCapacities(ramCacheInfo.mMinDeadBytes, ramCacheInfo.mMaxDeadBytes, ramCacheInfo.mTotalBytes);
+	WebCore::memoryCache()->setDeadDecodedDataDeletionInterval(ramCacheInfo.mDeadDecodedDataDeletionInterval);
 }
 
 void GetRAMCacheUsage(RAMCacheUsageInfo& ramCacheUsageInfo)
@@ -964,30 +981,21 @@ void DestroyJavascriptValueArray(JavascriptValue *array)
 
 void ClearMemoryCache()
 {
-	// This code is ported from Qt port. This would free up as much memory as possible.
-	if (!WebCore::memoryCache()->disabled()) 
-	{
-		WebCore::memoryCache()->setDisabled(true);
-		WebCore::memoryCache()->setDisabled(false);
-	}
-
-	int pageCapacity = WebCore::pageCache()->capacity();
-	EAW_ASSERT_MSG(pageCapacity == 0, "We should not use page cache");
-	// Setting size to 0, makes all pages be released.
-	WebCore::pageCache()->setCapacity(0);
-	WebCore::pageCache()->releaseAutoreleasedPagesNow();
-	WebCore::pageCache()->setCapacity(pageCapacity);
-
-	// Invalidating the font cache and freeing all inactive font data.
-	WebCore::fontCache()->invalidate();
-
-	// Empty the Cross-Origin Preflight cache
+	WebCore::fontCache()->purgeInactiveFontData(); //https://lists.macosforge.org/pipermail/webkit-dev/2008-October/005395.html 
 	WebCore::CrossOriginPreflightResultCache::shared().empty();
 
-	// abaldeva: After freeing up the cache, we set the RAM Cache back to what user intends it to be.
-	// If the user wants to disable the RAM Cache, they can call that API directly with 0 values.
-	SetRAMCacheUsage(sRamCacheInfo);
+	// abaldeva - We set the WebCore::MemoryCache capacity to be 0 here so that it prunes any decoded data for live images as well. This 
+	// claims back the as much memory as possible. We save the user preference before doing that and then restore it.
 
+	EA::WebKit::RAMCacheInfo clearRamCache,restoreUserPref;
+	clearRamCache.mTotalBytes = clearRamCache.mMaxDeadBytes = 0;
+	restoreUserPref = ramCacheUserPref; 
+	SetRAMCacheUsage(clearRamCache); 
+	SetRAMCacheUsage(restoreUserPref);
+	
+	int pageCapacity = WebCore::pageCache()->capacity();
+	EAW_ASSERT_MSG(pageCapacity == 0, "We should not use page cache");
+	WebCore::pageCache()->releaseAutoreleasedPagesNow();
 }
 void AddCookie(const char8_t* pHeaderValue, const char8_t* pURI)
 {
@@ -1133,6 +1141,7 @@ Parameters::Parameters()
     , mpApplicationName(NULL)         
     , mpUserAgent(NULL)          
     , mMaxTransportJobs(16)
+    , mMaxParallelConnectionsPerHost(6)
     , mHttpRequestResponseBufferSize(4096)
     , mPageTimeoutSeconds(30)
     , mHttpPipeliningEnabled(false)

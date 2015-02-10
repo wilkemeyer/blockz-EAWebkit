@@ -128,27 +128,10 @@ namespace Effects
     }
 
 
-    #if defined(EA_PLATFORM_WINDOWS) && defined(EA_PROCESSOR_X86)
-        // The x86 processor is particularly slow at float->int conversions, so we use a specialized version.
-        // An alternative approach is to use _mm_cvtss_si32(_mm_set_ss(fValue + 0.5f))
-        const int32_t kFToIBiasF32 = 3 << 22;
-        const int32_t kFToIBiasS32 = 0x4B400000;
-
-        inline int32_t RoundToInt32(float fValue)
-        {
-            const union {
-                float   f;
-                int32_t i;
-            } converter = { fValue + kFToIBiasF32 };
-
-            return converter.i - kFToIBiasS32;
-        }
-    #else
         inline int32_t RoundToInt32(float fValue)
         {
             return (int32_t)fValue; // We don't need the additional functionality of the floorf function.
         }
-    #endif
 
 
 } // namespace Effects

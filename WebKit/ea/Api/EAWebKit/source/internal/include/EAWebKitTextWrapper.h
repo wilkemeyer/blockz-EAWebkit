@@ -114,7 +114,7 @@ public:
     virtual bool				AddSubstitution(const char16_t* pFamily, const char16_t* pFamilySubstitution);
 	virtual bool				SupportsFormat(EA::WebKit::FontFormat format);
     virtual bool                GetDrawInfoForComplexText(EA::WebKit::IFont* pFont, const EA::WebKit::Char* textRun, int textRunCount, float clipLeft, float clipRight, EA::WebKit::TextDrawInfo& outDrawInfo);
-
+    virtual float               GetWidthForComplexText(EA::WebKit::IFont* pFont, const EA::WebKit::Char* run, int runCount);
 	// Text Layout Support
 	virtual void*	CharacterBreakIterator(EA::WebKit::Char* pText, int length);
 	virtual void*	WordBreakIterator(EA::WebKit::Char* pText, int length);
@@ -166,6 +166,7 @@ public:
     bool FillGlyphDrawInfo(EA::WebKit::IFont* pFont, const EA::WebKit::GlyphId* gIdArray, int glyphCount, EA::WebKit::GlyphDrawInfo* outGDI, bool abortOnFail);
     bool GetCachedGlyph(EA::Text::Font* pFont, EA::WebKit::GlyphId g, EA::WebKit::GlyphDrawInfo& gti);
     bool BuildDrawInfoFromLineLayout(const EA::Text::LineLayout& line, bool abortOnFail, float clipLeft, float clipRight, float& outXMin, float& outXMax, float& outYMin, float& outYMax);  
+    bool TypesetLine(EA::WebKit::IFont* pFont, const EA::WebKit::Char* textRun, int textRunCount, EA::Text::Typesetter& typesetter);
 
     eastl::list<EA::WebKit::FontImpl*, EA::WebKit::EASTLAllocator> mActiveFonts;
 

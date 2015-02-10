@@ -40,11 +40,6 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <stdio.h>
 #include EA_ASSERT_HEADER
 
-#if defined(EA_PLATFORM_WINDOWS)
-    #pragma warning(push, 0)
-    #include <Windows.h>
-    #pragma warning(pop)
-#endif
 
 #ifdef _MSC_VER
     #pragma warning(push)
@@ -163,33 +158,6 @@ EATEXT_API bool IsSpace(Char c, int spaceTypeFlags, bool bRequireAllFlags)
 ///////////////////////////////////////////////////////////////////////////////
 // GetCharName
 //
-#if defined(EA_PLATFORM_WINDOWS)
-    EATEXT_API uint32_t GetCharName(Char c, Char* pName, uint32_t nNameCapacity)
-    {
-        // A list of all such characters can (as of this writing) be found at:
-        //    http://www.unicode.org/Public/UNIDATA/NamesList.txt
-        //
-        // Under Win32, we simply use the OS-supplied GetUName.dll to retrieve the 
-        // character names. Alternatively, we would go to the Unicode names list 
-        // and pack it into some data file and access it there.
-        typedef DWORD(__stdcall *GetUNameFunc)(uint16_t nUnicodeChar, Char* pName);
-
-        static bool         bFunctionLinkAttemptedAlready = false;
-        static GetUNameFunc pGetUName = NULL;
-
-        if(!bFunctionLinkAttemptedAlready)
-        {
-            HINSTANCE hInstance = LoadLibraryA("GetUName.dll");
-            if(hInstance)
-                pGetUName = (GetUNameFunc)(void*)GetProcAddress((HMODULE)hInstance, "GetUName");
-            bFunctionLinkAttemptedAlready = true;
-        }
-
-        if(pGetUName && (nNameCapacity >= 256))
-            return (uint32_t)pGetUName(c, pName);
-        return 0;
-    }
-#else
     EATEXT_API uint32_t GetCharName(Char c, Char* pName, uint32_t nameCapacity)
     {
         // We could implement this via data form the Unicode Standard.
@@ -228,7 +196,6 @@ EATEXT_API bool IsSpace(Char c, int spaceTypeFlags, bool bRequireAllFlags)
 
         return 0;
     }
-#endif
 
 
 

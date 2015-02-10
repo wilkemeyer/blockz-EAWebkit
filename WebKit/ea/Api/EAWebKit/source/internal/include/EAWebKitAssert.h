@@ -48,7 +48,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // Assertion failures
 ///////////////////////////////////////////////////////////////////////
 
-// These functions will call ViewNotification::AssertionFailure and ViewNotification::DebugLog and 
+// These functions will call EAWebKitClient::DebugLog and 
 // are thus global convenience functions.
 extern "C" void WTFReportAssertionFailure(const char* file, int line, const char* function, const char* assertion);
 extern "C" void WTFReportAssertionFailureWithMessage(const char* file, int line, const char* function, const char* assertion, const char* format, ...);

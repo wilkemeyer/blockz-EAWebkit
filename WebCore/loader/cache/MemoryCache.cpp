@@ -699,9 +699,12 @@ void MemoryCache::evictResources()
 
 void MemoryCache::prune()
 {
-    if (m_liveSize + m_deadSize <= m_capacity && m_maxDeadCapacity && m_deadSize <= m_maxDeadCapacity) // Fast path.
+	//+EAWebKitChange
+	//11/07/2013 - Suspected it was a bug and turns out recently fixed on trunk
+	//https://bugs.webkit.org/show_bug.cgi?id=115631
+	if (m_liveSize + m_deadSize <= m_capacity /*&& m_maxDeadCapacity*/ && m_deadSize <= m_maxDeadCapacity) // Fast path.
         return;
-        
+    //-EAWebKitChange    
     pruneDeadResources(); // Prune dead first, in case it was "borrowing" capacity from live.
     pruneLiveResources();
 }

@@ -1,5 +1,5 @@
 /*
-Copyright (C) 2010, 2011, 2012 Electronic Arts, Inc.  All rights reserved.
+Copyright (C) 2010, 2011, 2012, 2013 Electronic Arts, Inc.  All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions
@@ -42,6 +42,11 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #ifdef _MSC_VER
 #define snprintf _snprintf
+
+// Code below stops exporting std::mutex and _init_locks symbols in the dll - http://social.msdn.microsoft.com/Forums/vstudio/en-US/4692205a-0296-4f41-adbb-fa8339597f5c/unwanted-exports 
+#include <new>
+namespace std { const nothrow_t nothrow = nothrow_t(); }
+
 #endif
 
 namespace EA

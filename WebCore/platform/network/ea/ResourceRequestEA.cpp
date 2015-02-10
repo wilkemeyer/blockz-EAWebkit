@@ -1,6 +1,6 @@
 /*
     Copyright (C) 2009 Nokia Corporation and/or its subsidiary(-ies)
-	Copyright (C) 2011, 2012 Electronic Arts, Inc. All rights reserved.
+	Copyright (C) 2011, 2012, 2013 Electronic Arts, Inc. All rights reserved.
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Library General Public
@@ -21,14 +21,15 @@
 #include "config.h"
 #include "ResourceRequest.h"
 
+#include "ResourceHandleManagerEA.h"
 
 namespace WebCore {
 
-// We put an arbitrary high number here for webcore to make sure that it does not hinder filling our job queue. The maximum number
-// of simultaneous network requests are controllable through EA::WebKit::Parameters (For all hosts)
+// The max connection count per host is configurable via Parameters. The default value is currently 6, which seems to be common amongst other WebKit ports.
+//
 unsigned initializeMaximumHTTPConnectionCountPerHost()
 {
-    return 36;
+    return WebCore::ResourceHandleManager::sharedInstance()->GetMaxParallelConnectionsPerHost();
 }
 
 }

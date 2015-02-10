@@ -167,6 +167,8 @@ public:
 	EA::WebKit::CookieManager*         GetCookieManager();
 	//EA::WebKit::AuthenticationManager* GetAuthenticationManager();
 
+    int GetMaxParallelConnectionsPerHost();
+
 private:
 	ResourceHandleManager();
 	virtual ~ResourceHandleManager();
@@ -206,13 +208,14 @@ private:
 	EA::WebKit::TransportHandlerDirtySDK	m_THDirtySDK;
 #endif
 
-	Timer<ResourceHandleManager>        m_downloadTimer;            // 
+	Timer<ResourceHandleManager>        m_downloadTimer;                    // 
 	
-	ResourceHandleList					m_pendingResourceHandleList;// This is a list of jobs that haven't been started yet.
-    int                                 m_runningJobs;              // This is a count of jobs that have been started and are running.
-    double                              m_pollTimeSeconds;          // Defaults to something small like 0.016 seconds (~60 frames/sec).
-    int                                 m_maxConcurrentJobs;        // Max number of jobs occurring at at time.
-    EA::WebKit::CookieManager           m_cookieManager;            // 
+	ResourceHandleList					m_pendingResourceHandleList;        // This is a list of jobs that haven't been started yet.
+    int                                 m_runningJobs;                      // This is a count of jobs that have been started and are running.
+    double                              m_pollTimeSeconds;                  // Defaults to something small like 0.016 seconds (~60 frames/sec).
+    int                                 m_maxConcurrentJobs;                // Max number of jobs occurring at at time.
+    int                                 m_maxParallelConnectionsPerHost;    // Max number of parallel connections to host.
+    EA::WebKit::CookieManager           m_cookieManager;                    // 
 
     THInfoList                              m_THInfoList;
     JobInfoList                             m_JobInfoList;

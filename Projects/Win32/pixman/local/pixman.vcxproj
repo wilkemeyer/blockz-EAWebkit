@@ -19,13 +19,13 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'pc-vc-dev-debug|Win32' " Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <CharacterSet>MultiByte</CharacterSet>
-    <PlatformToolset>v100</PlatformToolset>
+    <PlatformToolset>v120</PlatformToolset>
     <UseDebugLibraries>True</UseDebugLibraries>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'pc-vc-dev-opt|Win32' " Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
     <CharacterSet>MultiByte</CharacterSet>
-    <PlatformToolset>v100</PlatformToolset>
+    <PlatformToolset>v120</PlatformToolset>
     <UseDebugLibraries>False</UseDebugLibraries>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
@@ -185,7 +185,8 @@
   </ImportGroup>
   <ProjectExtensions>
     <VisualStudio>
-      <UserProperties platform_pc-vc-dev-debug_Win32="vc" vc-compiler="$(VSInstallDir)\VC\BIN\cl.exe" vc-compiler_clang="" vc-asm="$(VSInstallDir)\VC\BIN\ml.exe" vc-librarian="$(VSInstallDir)\VC\BIN\lib.exe" platform_pc-vc-dev-opt_Win32="vc" build.env.PATH="$(VSInstallDir)\Common7\IDE"></UserProperties>
+      <UserProperties platform_pc-vc-dev-debug_Win32="vc" vc-compiler="$(VSInstallDir)\VC\BIN\cl.exe" vc-compiler_clang="" vc-asm="$(VSInstallDir)\VC\BIN\ml.exe" vc-librarian="$(VSInstallDir)\VC\BIN\lib.exe" platform_pc-vc-dev-opt_Win32="vc" build.env.PATH="$(VSInstallDir)\Common7\IDE">
+      </UserProperties>
     </VisualStudio>
   </ProjectExtensions>
 </Project>

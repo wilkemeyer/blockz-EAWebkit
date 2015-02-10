@@ -306,9 +306,14 @@ void ChromeClientEA::addMessageToConsole(MessageSource, MessageType, MessageLeve
         eastl::string8 prefix;
         switch (level)
         {
-            case WarningMessageLevel: prefix = "JSWarning:"; break;
-            case ErrorMessageLevel: prefix = "JSError:"; break;
-            default: prefix = "JS:"; break;
+		case WarningMessageLevel: 
+			prefix = "EAWebKit: JS Warning - "; 
+			break;
+		case ErrorMessageLevel: 
+			prefix = "EAWebKit: JS Error -"; 
+			break;
+        default: 
+			prefix = "EAWebKit: JS -"; break;
         }
         
         eastl::string8 logMessage;

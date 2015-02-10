@@ -150,6 +150,7 @@ ResourceHandleManager::ResourceHandleManager()
     , m_runningJobs(0)
     , m_pollTimeSeconds(kPollTimeSeconds)
     , m_maxConcurrentJobs(16)
+    , m_maxParallelConnectionsPerHost(6)
     , m_cookieManager()
     , m_THInfoList()
     , m_JobInfoList()
@@ -1414,6 +1415,12 @@ void ResourceHandleManager::SetParams(const EA::WebKit::Parameters& params)
 	const EA::WebKit::Parameters& parameters = EA::WebKit::GetParameters();
 	
 	m_maxConcurrentJobs = parameters.mMaxTransportJobs;
-
+    m_maxParallelConnectionsPerHost = parameters.mMaxParallelConnectionsPerHost;
 }
+
+int ResourceHandleManager::GetMaxParallelConnectionsPerHost()
+{
+    return m_maxParallelConnectionsPerHost;
+}
+
 } // namespace WebCore

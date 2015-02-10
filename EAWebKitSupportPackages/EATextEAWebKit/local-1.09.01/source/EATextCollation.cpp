@@ -42,9 +42,6 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "internal/CollationData.inl"
 #include EA_ASSERT_HEADER
 
-#ifdef EA_PLATFORM_WINDOWS
-    #include <Windows.h>
-#endif
 
 
 
@@ -71,11 +68,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // off of other config options.
 //
 #if EATEXT_OS_COLLATION_ENABLED
-    #if defined(EA_PLATFORM_WINDOWS)
-        #define EATEXT_OS_COLLATION_AVAILABLE 1
-    #else
         #define EATEXT_OS_COLLATION_AVAILABLE 0
-    #endif
 #else
     #define EATEXT_OS_COLLATION_AVAILABLE 0
 #endif
@@ -100,58 +93,6 @@ struct SortByCombiningClass // : public eastl::binary_function<Char, Char, bool>
 };
 
 
-#ifdef EA_PLATFORM_WINDOWS
-
-    // This table is borrowed from the EALocale package.
-    const char8_t* sOSLocaleTable[] = 
-    {
-        // "ISO^Win32LCID
-        "en-us\0" "0400",      // Process or User Default Language     
-        "sq-al\0" "041c",      // Albanian     
-        "ar-sa\0" "0401",      // Arabic (Saudi Arabia)     
-        "zh-tw\0" "0404",      // Chinese (Taiwan)     
-        "zh-cn\0" "0804",      // Chinese (PRC)     
-        "zh-hk\0" "0c04",      // Chinese (Hong Kong SAR, PRC)     
-        "zh-sg\0" "1004",      // Chinese (Singapore)     
-        "cs-cz\0" "0405",      // Czech     
-        "da-dk\0" "0406",      // Danish     
-        "nl-nl\0" "0413",      // Dutch (Netherlands)     
-        "nl-be\0" "0813",      // Dutch (Belgium)     
-        "en-us\0" "0409",      // English United States    
-        "en-gb\0" "0809",      // English Great Britain (UK)    
-        "fi-fi\0" "040b",      // Finnish     
-        "fr-fr\0" "040c",      // French (Standard)     
-        "fr-be\0" "080c",      // French (Belgian)     
-        "fr-ca\0" "0c0c",      // French (Canadian)     
-        "de-de\0" "0407",      // German (Standard)     
-        "de-ch\0" "0807",      // German (Switzerland)     
-        "el-gr\0" "0408",      // Greek     
-        "iw-il\0" "040d",      // Hebrew     
-        "hi-in\0" "0439",      // Hindi   
-        "hu-hu\0" "040e",      // Hungarian     
-        "is-is\0" "040f",      // Icelandic     
-        "it-it\0" "0410",      // Italian (Standard)     
-        "it-ch\0" "0810",      // Italian (Switzerland)     
-        "ja-jp\0" "0411",      // Japanese     
-        "ko-kp\0" "0412",      // Korean (North)    
-        "ko-kr\0" "0412",      // Korean (South)    
-        "no-no\0" "0414",      // Norwegian (Bokmal)     
-        "pl-pl\0" "0415",      // Polish     
-        "pt-br\0" "0416",      // Portuguese (Brazil)     
-        "pt-pt\0" "0816",      // Portuguese (Portugal)     
-        "ro-ro\0" "0418",      // Romanian     
-        "ru-ru\0" "0419",      // Russian     
-        "sk-sk\0" "041b",      // Slovak     
-        "es-es\0" "040a",      // Spanish (Spain, Traditional Sort)     
-        "es-mx\0" "080a",      // Spanish (Mexican)     
-        "es-es\0" "0c0a",      // Spanish (Spain, Modern Sort)     
-        "sv-se\0" "041d",      // Swedish     
-        "sv-fi\0" "081d",      // Swedish (Finland)
-        "th-th\0" "041e",      // Thai     
-        "tr-tr\0" "041f"       // Turkish     
-    };
-
-#endif
 
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -3451,9 +3392,6 @@ Collator::Collator(bool /*bEnableCache*/, Allocator::ICoreAllocator* /*pAllocato
   , mbIgnoreCase(false)
   , mbLocaleFirst(false)
   , mbDigitsAsNumbers(false)
-  #ifdef EA_PLATFORM_WINDOWS
-  , mLCID(LOCALE_USER_DEFAULT)
-  #endif
 {
     mLocale[0] = 0;
 }
@@ -3461,37 +3399,7 @@ Collator::Collator(bool /*bEnableCache*/, Allocator::ICoreAllocator* /*pAllocato
 
 void Collator::SetLocale(const char* pLocale)
 {
-    #ifdef EA_PLATFORM_WINDOWS
-        //using namespace EA::StdC;
-
-        mLCID = LOCALE_USER_DEFAULT;
-
-        const size_t kTableSize = sizeof(sOSLocaleTable) / sizeof(sOSLocaleTable[0]);
-        size_t i = 0;
-
-        for(i = 0; i < kTableSize; ++i)
-        {
-            if(Stricmp(pLocale, sOSLocaleTable[i]) == 0)
-            {
-                mLCID = StrtoU32(sOSLocaleTable[i] + 6, NULL, 16);
-                break;
-            }
-        }
-
-        if(i == kTableSize)
-        {
-            for(i = 0; i < kTableSize; ++i)
-            {
-                if(Strnicmp(pLocale, sOSLocaleTable[i], 2) == 0)
-                {
-                    mLCID = StrtoU32(sOSLocaleTable[i] + 6, NULL, 16);
-                    break;
-                }
-            }
-        }
-    #else
         EA_UNUSED(pLocale);
-    #endif
 }
 
 
@@ -3665,24 +3573,6 @@ static int CompareBasic(const Char* p1, uint32_t p1Length, const Char* p2, uint3
 int Collator::Compare(const Char* p1, uint32_t p1Length, const Char* p2, uint32_t p2Length)
 {
     // Until we completely finish the platform-independent code, we use the Windows CompareString API under Windows.
-    #if EATEXT_OS_COLLATION_AVAILABLE && defined(EA_PLATFORM_WINDOWS)
-        // Note: it seems that Windows wants upperc-case versions of the locale country (e.g. "en-US" instead of "en-us").
-        DWORD dwFlags = 0;
-
-        if(mbIgnoreCase)
-            dwFlags |= NORM_IGNORECASE; // LINGUISTIC_IGNORECASE seems better than NORM_IGNORECASE, but is available only on Vista+. For most uses they supposedly act the same.
-
-        #if (WINVER >= 0x0601)
-            if(mbDigitsAsNumbers) // You need the Windows 7 SDK in order to support this.
-                dwFlags |= SORT_DIGITSASNUMBERS;
-        #endif
-
-        // CompareStringExW exists but only on Vista and later.
-        const int result = CompareStringW(mLCID, dwFlags, p1, (int)p1Length, p2, (int)p2Length);
-
-        return (result - 2); // See the Windows documentation for an explanation of this.
-
-    #else
         // This is an unlocalized implementation, but works most of the time with Western text anyway.
         if(mbIgnoreCase)
             return CompareBasicIgnoreCase(p1, p1Length, p2, p2Length);
@@ -3727,7 +3617,6 @@ int Collator::Compare(const Char* p1, uint32_t p1Length, const Char* p2, uint32_
 
         return result;
         */
-    #endif
 }
 
 

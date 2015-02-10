@@ -369,6 +369,8 @@ public:
     virtual bool				AddSubstitution(const char16_t* pFamily, const char16_t* pFamilySubstitution) = 0;
 	virtual bool				SupportsFormat(EA::WebKit::FontFormat format) = 0;
     virtual bool                GetDrawInfoForComplexText(EA::WebKit::IFont* pFont, const EA::WebKit::Char* textRun, int textRunCount, float clipLeft, float clipRight, EA::WebKit::TextDrawInfo& outDrawInfo) = 0;
+    virtual float               GetWidthForComplexText(EA::WebKit::IFont* pFont, const EA::WebKit::Char* run, int runCount) = 0;
+
     // Text Layout Support
     virtual void*	CharacterBreakIterator(Char* pText, int length) = 0;
     virtual void*	WordBreakIterator(Char* pText, int length) = 0;

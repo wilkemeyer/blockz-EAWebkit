@@ -50,10 +50,14 @@
 #if HAVE_CONFIG_H
 #include "config.h"
 #endif
-
+//+EAWebKitChange
+//10/04/2013 - Removed this export as it unnecessarily exports cairo symbols out of dll
+/*
 #ifdef _MSC_VER
 #define cairo_public __declspec(dllexport)
 #endif
+*/
+//-EAWebKitChange
 
 #include <assert.h>
 #include <stdlib.h>

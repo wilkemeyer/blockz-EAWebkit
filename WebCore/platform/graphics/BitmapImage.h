@@ -2,7 +2,7 @@
  * Copyright (C) 2006 Samuel Weinig (sam.weinig@gmail.com)
  * Copyright (C) 2004, 2005, 2006 Apple Computer, Inc.  All rights reserved.
  * Copyright (C) 2008-2009 Torch Mobile, Inc.
- * Copyright (C) 2011, 2012 Electronic Arts, Inc. All rights reserved.
+ * Copyright (C) 2011, 2012, 2013 Electronic Arts, Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -80,7 +80,7 @@ public:
         , m_hasAlpha(true) 
 //+EAWebKitChange
 //5/17/2012 - For image compression support.  
-#if PLATFORM(EA)
+#if ENABLE(IMAGE_COMPRESSION)
         , m_compressedDataBuffer(0)
         , m_compressedSize(0)
 #endif
@@ -105,7 +105,7 @@ public:
     
 //+EAWebKitChange
 //5/17/2012 - For image compression support.
-#if PLATFORM(EA)
+#if ENABLE(IMAGE_COMPRESSION)
     void* m_compressedDataBuffer;   // Buffer for storing the compressed frame.
     size_t m_compressedSize;        // Size of the compressed data buffer needed for client size notification.
 #endif
@@ -176,7 +176,7 @@ public:
 
 //+EAWebKitChange
 //5/17/2012
-#if PLATFORM(EA)
+#if ENABLE(IMAGE_COMPRESSION)
     // For image compression support.     
     size_t compressFrame(size_t index);  
     NativeImagePtr decompressFrame(size_t index);
@@ -246,8 +246,12 @@ protected:
     //+EAWebKitChange
     //5/23/2012 - Added passing releasedSize as option for calculating released frames size.
     // This is because compression can have variable sized buffers.
-    void destroyMetadataAndNotify(int framesCleared, int releasedSize = 0);
-    //-EAWebKitChange    
+#if ENABLE(IMAGE_COMPRESSION)
+	void destroyMetadataAndNotify(int framesCleared, int releasedSize);
+#else
+	void destroyMetadataAndNotify(int framesCleared);
+#endif
+	//-EAWebKitChange    
 
     // Whether or not size is available yet.    
     bool isSizeAvailable();

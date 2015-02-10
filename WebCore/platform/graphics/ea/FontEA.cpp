@@ -545,7 +545,6 @@ void Font::drawGlyphs(GraphicsContext* pGraphicsContext, const SimpleFontData* p
     pFont->EndDraw();    
 }
 
-
 void Font::drawComplexText(GraphicsContext* ctx, const TextRun& run, const FloatPoint& point, int from, int to) const
 {
     EA::WebKit::ITextSystem *pTextSystem = EA::WebKit::GetTextSystem();
@@ -588,9 +587,18 @@ void Font::drawComplexText(GraphicsContext* ctx, const TextRun& run, const Float
     pFont->EndDraw();
 }
 
-float Font::floatWidthForComplexText(const TextRun& run, HashSet<const SimpleFontData*>* fallbackFonts, GlyphOverflow* glyphOverflow) const
+float Font::floatWidthForComplexText(const TextRun& run, HashSet<const SimpleFontData*>* /*fallbackFonts*/, GlyphOverflow* /*glyphOverflow*/) const
 {
-    return floatWidthForSimpleText(run, NULL, fallbackFonts, glyphOverflow);
+    EA::WebKit::ITextSystem *pTextSystem = EA::WebKit::GetTextSystem();
+    if(!pTextSystem)
+        return 0.f;
+
+    const SimpleFontData* pSimpleFontData = primaryFont();
+    EA::WebKit::IFont *pFont = pSimpleFontData->getEAFont();
+    if (!pFont)    
+        return 0.f;
+
+    return pTextSystem->GetWidthForComplexText(pFont, run.characters(), run.length());
 }
 
 int Font::offsetForPositionForComplexText(const TextRun& /*run*/, float /*position*/, bool /*includePartialGlyphs*/) const

@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2004, 2005, 2006 Apple Computer, Inc.  All rights reserved.
  * Copyright (C) 2007-2008 Torch Mobile, Inc.
- * Copyright (C) 2011, 2012 Electronic Arts, Inc. All rights reserved.
+ * Copyright (C) 2011, 2012, 2013 Electronic Arts, Inc. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -196,7 +196,7 @@ public:
 
 //+EAWebKitChange
 //5/22/2012
-#if PLATFORM(EA)
+#if ENABLE(IMAGE_COMPRESSION)
     // Accessor for image compression so that we can clear the decoder buffer when an image is compressed.
     NativeImageSourcePtr GetDecoder(void) { return m_decoder; }  
 #endif

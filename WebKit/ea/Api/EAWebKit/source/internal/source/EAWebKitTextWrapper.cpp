@@ -1078,6 +1078,9 @@ bool TextSystem::GetGlyphs(EA::WebKit::IFont* pFont, const EA::WebKit::GlyphId* 
 
 bool TextSystem::GetCachedGlyph(EA::Text::Font* pFontEA, EA::WebKit::GlyphId g, EA::WebKit::GlyphDrawInfo& gdi)
 {
+    if (!pFontEA)
+        return false;
+    
     EA::Text::GlyphTextureInfo  gtiEA;
     EA::Text::GlyphId gEA = GetEAText_GlyphId(g);
     
@@ -1515,12 +1518,18 @@ bool TextSystem::BuildDrawInfoFromLineLayout(const EA::Text::LineLayout& line, b
     return true;
 }
 
-bool TextSystem::GetDrawInfoForComplexText(EA::WebKit::IFont* pFont, const EA::WebKit::Char* textRun, int textRunCount, float clipLeft, float clipRight, EA::WebKit::TextDrawInfo& outDrawInfo)
+bool TextSystem::TypesetLine(EA::WebKit::IFont* pFont, const EA::WebKit::Char* textRun, int textRunCount, EA::Text::Typesetter& typesetter)
 {
     EA_COMPILETIME_ASSERT((int) sizeof(EA::Text::Char) == (int) sizeof(EA::WebKit::Char));
 
     // This is a workaround for the typesetter for it will ignore the provided font if in dynamic mode.
     EA::Text::Font* pFontEA =  static_cast<EA::WebKit::FontImpl*> (pFont)->mpFont;
+    if (!pFontEA)
+    {
+        EA_ASSERT(pFontEA);
+        return false;
+    }
+
     bool useFont = false;
     for (int i = 0; i < textRunCount; i++ )
     {
@@ -1529,13 +1538,12 @@ bool TextSystem::GetDrawInfoForComplexText(EA::WebKit::IFont* pFont, const EA::W
             break;
     }
 
-    EA::Text::Typesetter typesetter;
     EA::Text::LayoutSettings layoutSettings;
-    layoutSettings.mbEnableLigatures = false;  // This is off by default in typesetter anyway.
+    layoutSettings.mbEnableLigatures = true;  // This is off by default in typesetter.
     layoutSettings.mbDynamicFontSelection = !useFont;
     if(useFont)
     {
-        // If we can use the passed font, the text sytle is already loaded.
+        // If we can use the passed font, the text style is already loaded.
         layoutSettings.mFontSelection.insert(pFontEA);
         typesetter.SetLayoutSettings(layoutSettings);
     }
@@ -1564,13 +1572,24 @@ bool TextSystem::GetDrawInfoForComplexText(EA::WebKit::IFont* pFont, const EA::W
     typesetter.AddTextRun((EA::Text::Char*) textRun,  textRunCount);
     typesetter.FinalizeLine();
 
+    return true;
+}
+
+bool TextSystem::GetDrawInfoForComplexText(EA::WebKit::IFont* pFont, const EA::WebKit::Char* textRun, int textRunCount, float clipLeft, float clipRight, EA::WebKit::TextDrawInfo& outDrawInfo)
+{
+    // Typeset the line.
+    EA::Text::Typesetter typesetter;
+    bool result = TypesetLine(pFont, textRun, textRunCount, typesetter);
+    if (!result)
+        return result;
+
     // Get the line layout info.
     EA::Text::LineLayout& lineLayout = typesetter.GetLineLayout();
 
     // Build the draw info.
     float xMin, yMin, xMax, yMax;
     bool abortOnFail = true;
-    bool result = BuildDrawInfoFromLineLayout(lineLayout, abortOnFail, clipLeft, clipRight, xMin, xMax, yMin, yMax);  
+    result = BuildDrawInfoFromLineLayout(lineLayout, abortOnFail, clipLeft, clipRight, xMin, xMax, yMin, yMax);  
     if (!result)
     {
         // Flush the cache if we need to retry.
@@ -1592,6 +1611,21 @@ bool TextSystem::GetDrawInfoForComplexText(EA::WebKit::IFont* pFont, const EA::W
     outDrawInfo.mpGDI = mCurrentGlyphDrawInfoVector.data();
 
     return true;
+}
+
+float TextSystem::GetWidthForComplexText(EA::WebKit::IFont* pFont, const EA::WebKit::Char* textRun, int textRunCount)
+{
+    // Typeset the line.
+    EA::Text::Typesetter typesetter;
+    bool result = TypesetLine(pFont, textRun, textRunCount, typesetter);
+    if (!result)
+        return 0.f;
+
+    EA::Text::LineLayout& lineLayout = typesetter.GetLineLayout();
+    float outW = 0.f;
+    float outH = 0.f;
+    lineLayout.GetBoundingBox(outW, outH, false); // False is to include invisible spaces in the calculation.
+    return outW;
 }
 
 void TextSystem::ResetDrawInfoVector(void)

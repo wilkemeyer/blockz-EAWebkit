@@ -45,42 +45,27 @@ FontPlatformDataPrivate::~FontPlatformDataPrivate()
 		mpFont = NULL;
 	}
 }
-float GetFontAdjustedSize(float fontSize)
+static float GetFontSizeInPoints(float fontSizeInPixels)
 {
-    
-    // Set TextStyle::mfSize
-    //
-    // Do we need/want to do this 72/96 dpi transformation? Fonts seem to big relative to 
-    // FireFox/Safari without it. The implication is that WebCore expects that the video 
-    // display is 72 point instead of 96 point (the latter of which is standard on Windows).
-    // Update:09/01/2011 - abaldeva. Yes, this conversion is correct. The Qt port passes down the size as the Pixel size as
-	// opposed to Point size. However, it seems like this conversion should use a variable constant based rather than fixed 
-	// factor of 0.75f. 
-	// 
-    // Here is a table of HTML point sizes to WebKit's resulting pixel sizes.
-    // Recall that you can specify text in HTML as pixels and points (and some other less common types).
-    // The pixel size is always the point size * 1.33333
-    //      HTML point size  | computedSize
-    //      --------------------------------
-    //             9         |    12.000
-    //            10         |    13.333
-    //            11         |    14.666
-    //            12         |    16.000
-    //            etc.       |     etc.
-    //
-    // The following calculation has been shown to perfectly match the font usage of 
-    // FireFox and Internet Explorer on Windows XP.
-      
-    float adjustedSize = fontSize * 0.75f;  // (72.0 / 96.0 = 0.75)
-   
-    if(adjustedSize <= 0.0f)
-    {
-        adjustedSize = 1.0f;    // We need some kind of size for EAText. WebKit considers any size over >=0 as valid.
-    }
-    return adjustedSize;
+    // Before sending down the font size to the platform layer, WebCore converts the font size to be in pixels using the translation provided at http://www.w3.org/TR/css3-values/. 
+	// So 1 css inch = 96 css pixels = 72 css points. A good explanation can be found at http://docs.webplatform.org/wiki/tutorials/understanding-css-units 
+
+	// Note that 1 css inch is not necessarily map to 1 physical inch and 1 css pixel does not necessarily map to 1 device pixel. WebCore calculations are done in CSSPrimitiveValue::computeLengthDouble. In CSSHelper.h, cssPixelsPerInch is set to 96.
+	
+	// Our text implementation expects the font size to be in terms of points. So we do that conversion here by using following formula.
+    // fontSizeInPoints = 0.75 * fontSizeInPixels
+	
+	// The dpi and pt provide a consistent size when printing but not when rendering on screen. pt and pixel are correlated with a constant factor. An image printer program can actually understand dpi etc.
+	
+	float fontSizeInPoints = 0.75f * fontSizeInPixels;  
+	if(fontSizeInPoints <= 0.0f)
+	{
+		fontSizeInPoints = 1.0f; // abaldeva - This seems questionable.
+	}
+	return fontSizeInPoints;
 }
 
-float GetFontAdjustedWeight(FontWeight weight)
+static float GetFontAdjustedWeight(FontWeight weight)
 {
     COMPILE_ASSERT( FontWeight100 == 0, FontWeight);
     COMPILE_ASSERT( FontWeight900 == 8, FontWeight);
@@ -93,19 +78,18 @@ float GetFontAdjustedWeight(FontWeight weight)
     return static_cast<float> (w);
 }
 
-static bool IsFontSmooth(float fontSize, FontSmoothingMode mode = AutoSmoothing)
+static bool ShouldSmoothText(float fontSize, FontSmoothingMode mode = AutoSmoothing)
 {
-    bool isSmooth = false;
+    bool shouldSmooth = false;
 
     switch (mode)
     {
     case NoSmoothing:
-        // False is already set.
         break;
     
     case SubpixelAntialiased:
     case Antialiased:
-        isSmooth = true;
+        shouldSmooth = true;
         break;
    
     case AutoSmoothing:
@@ -114,13 +98,13 @@ static bool IsFontSmooth(float fontSize, FontSmoothingMode mode = AutoSmoothing)
             const uint32_t smoothSize = EA::WebKit::GetParameters().mSmoothFontSize;    
             if ((smoothSize == 0) || (( uint32_t) fontSize >= smoothSize)) // 0 will make all fonts smooth regardless of size.  
             {
-                isSmooth = true;
+                shouldSmooth = true;
             }
         }
         break;
     }
   
-    return isSmooth;
+    return shouldSmooth;
 }
 
 // Helper default init for text style.  We could move this to wrapper if needed but it is EAWebKit specific.
@@ -267,10 +251,10 @@ FontPlatformData::FontPlatformData(const FontDescription& description, const Ato
     textStyle.mfWordSpacing =  static_cast<float> (wordSpacing);   
 
      // Size
-    const float fFontSize = description.computedSize();
-    const float fAdjustedFontSize = GetFontAdjustedSize(fFontSize); 
-    textStyle.mfSize = fAdjustedFontSize;   
-    
+    const float fontSizeInPixels = description.computedSize();
+    const float fontSizeInPoints = GetFontSizeInPoints(fontSizeInPixels); 
+    textStyle.mfSize = fontSizeInPoints;   
+     
     // Italic
     const bool bItalic = description.italic();
     if(bItalic)
@@ -286,8 +270,8 @@ FontPlatformData::FontPlatformData(const FontDescription& description, const Ato
 
     // Smooth
     // We act like FireFox under Windows does with respect to sizes and weights.
-    bool smooth = IsFontSmooth(fFontSize, description.fontSmoothing());
-    if(smooth)
+    bool shouldSmooth = ShouldSmoothText(fontSizeInPixels, description.fontSmoothing());
+    if(shouldSmooth)
         textStyle.mSmooth = EA::WebKit::kSmoothEnabled;    
 
     // Now get the requested font 
@@ -302,7 +286,7 @@ FontPlatformData::FontPlatformData(const FontDescription& description, const Ato
 FontPlatformData::FontPlatformData(SharedBuffer* buffer, int size, bool bold, bool italic)
    : m_data(new FontPlatformDataPrivate())   
 {
-	m_data->size = GetFontAdjustedSize(size);
+	m_data->size = GetFontSizeInPoints(size);
     m_data->bold = bold;
 	m_data->oblique = italic;
 	
@@ -311,8 +295,8 @@ FontPlatformData::FontPlatformData(SharedBuffer* buffer, int size, bool bold, bo
 	m_data->mpFont->SetSize(m_data->size);
 
     // Set text smoothing. 
-    bool useSmooth = IsFontSmooth(m_data->size);
-    EA::WebKit::Smooth smooth = useSmooth ? EA::WebKit::kSmoothEnabled : EA::WebKit::kSmoothNone;
+    bool shouldSmooth = ShouldSmoothText(m_data->size);
+    EA::WebKit::Smooth smooth = shouldSmooth ? EA::WebKit::kSmoothEnabled : EA::WebKit::kSmoothNone;
     m_data->mpFont->SetSmoothing(smooth);
 
     // We are currently unable to set bold and italic info. Figure out a way for it. 

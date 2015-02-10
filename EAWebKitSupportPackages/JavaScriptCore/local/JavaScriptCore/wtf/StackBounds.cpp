@@ -108,9 +108,17 @@ void StackBounds::initialize()
 		m_origin = EA::WebKit::gpCollectorStackBase;
 	}
 
-    // Going to leave this estimate. It's conservative, and should not crash.
-    // Worst case some JS parsing fails on expressions nested deeply enough to
-    // overflow the estimate.
+    // Going to leave this estimate which is about 1 MB. This seems like a safeguard for OS thread stack against poorly written/unduly complex/malicious JavaScript. 
+	// Currently, JSC interpreter logic continues to parse JavaScript unless stack position overflows beyond this size so as to not thrash OS thread stack.
+	// This situation is highly unlikely as most OS stack are not that large in practice. It should be noted however that most of the stack thrash we have seen with WebKit are in the Render layer code which can recurse pretty deep.
+	// Our experience has been that 384k of stack space has been sufficient for WebKit needs.
+
+	// This stack size is different from the RegisterFile size which manages stack size of JS VM. For example, writing a function like below will easily cause the JS VM stack to exhaust but will have no side effect on OS thread stack.
+	// function callSelf()
+	// {
+	//		callSelf();
+	// }
+	//
 	m_bound = estimateStackBound(m_origin);
 
 }

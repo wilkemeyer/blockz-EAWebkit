@@ -154,6 +154,7 @@ static void vprintf_stderr_common(bool shouldAssert, const char* format, va_list
 #endif
 	}
 #endif //_DEBUG
+    return;
 #elif HAVE(ISDEBUGGERPRESENT)
     if (IsDebuggerPresent()) {
         size_t size = 1024;

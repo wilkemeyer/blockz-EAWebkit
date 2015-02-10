@@ -55,23 +55,46 @@ enum WebKitStatus
 
 struct RAMCacheInfo
 {
-	// Having a large enough RAM cache allows for faster draw (like when scrolling)
-	// and faster page reload.
+	// Having a larger RAM cache allows for better performance (like when scrolling or switching pages)
+	/* abaldeva
+	In order to understand this API, it is important to understand terminology associated with it. 
+	Resource - An asset like image, script etc.
+	Resource memory - Divided in 3 parts
+		Source size - This is the size of your resource which is often much smaller for an encoded resource such as jpg/png image. This is the data downloaded from the server.
+		Decoded size - This is the size of your resource when decoded so that it can be used by the render engine. For images, it would be fully decoded ARGB pixels. This is the heaviest part of the memory.
+		Overhead size - The overhead needed by the Cache system. Reasonably small but grows with number of resources in use.
+	Live resource - A resource that is currently referenced on a page. In WebCore terms, it currently has clients.
+	Dead resource - A resource that is currently not referenced on a page. In WebCore terms, it currently has no clients. However, the resource can become a live resource again due to user action such as pressing the back button to go to a previous page/screen. Note that an off-viewport image is not a dead resource.
+	Cache capacity - Total memory size serving as a goal to for the cache system. It is very important to understand that this is not an absolute limit. While it may sound odd, it is easy to understand. If you set the cache to 2 MB but have images worth 10 MB source data on your page, those images will still be downloaded and cause the cache system to report 10 MB memory usage. And any image that is drawn on the screen will cause the memory usage to grow even further. However, you can use RAMCacheInfo structure to control the pruning of the decoded data. Because once the image is drawn on the screen, the decoded data is no longer required. However, if a subsequent user action causes the image to be redrawn (for example, scrolling), if the decoded data is not in the cached memory, it will have to be decoded again and redrawn. So you’d want to tune your cache to provide a proper balance between memory and performance. This also depends on your page layout.
+	Dead capacity - The upper limit of memory size devoted to keeping dead resources in memory. It may not always be a best choice to keep this capacity to 0. If your UI layout causes user to frequently move between different screens, you may want to keep dead capacity at a reasonable level in order to make the experience smoother. If the dead capacity is set to 0, the source data of the resource is deleted as well. This will causes the resource to be re-downloaded in case it is needed.
+	
+	From WebCore - MemoryCache class
+	//  - minDeadBytes: The maximum number of bytes that dead resources should consume when the cache is under pressure.
+	//  - maxDeadBytes: The maximum number of bytes that dead resources should consume when the cache is not under pressure.
+	//  - totalBytes: The maximum number of bytes that the cache should consume overall.
+	So sounds like the members are not named intuitively. minDeadBytes should be thought as mMaxDeadBytesUnderPressure and maxDeadBytes should be thought as
+	mMaxDeadBytesNoPressure
+	*/
+
     uint32_t    mTotalBytes;    // Total number of bytes to be used for the RAM cache.  
-    uint32_t    mMinDeadBytes;  // Min inactive data to keep in cache before releasing it. Normally 0 to release all when the space is needed. 
-    uint32_t    mMaxDeadBytes;  // Max inactive data allowed to be stored in the cache.
+    uint32_t    mMinDeadBytes;  // Deprecated. 
+    uint32_t    mMaxDeadBytes;  // Max dead resources allowed to be stored in the cache.
+	double		mDeadDecodedDataDeletionInterval; // In seconds. 0.0 by default (which means never). The interval value for cache can be used judiciously. If you set it say 30 seconds, you can keep some dead data and allow the user to switch between pages very quickly. But once you see that the user is not switching frequently(30 seconds have elapsed), you claim that memory automatically. The regular prune process does not claim the dead data if not overflowing the dead capacity preference. 
+	// mDeadDecodedDataDeletionInterval is useless if you set mMaxDeadBytes to 0 as dead data is claimed right away.
 
 	RAMCacheInfo()
 		: mTotalBytes(8 * 1024 * 1024)
 		, mMinDeadBytes(0)
         , mMaxDeadBytes(8/4 * 1024 * 1024)
+		, mDeadDecodedDataDeletionInterval(0.0)
 	{
 	}
 
-	RAMCacheInfo(uint32_t totalBytes, uint32_t minDeadBytes, uint32_t maxDeadBytes)
+	RAMCacheInfo(uint32_t totalBytes, uint32_t minDeadBytes, uint32_t maxDeadBytes, double deadDecodedDataDeletionInterval)
         : mTotalBytes(totalBytes)
 		, mMinDeadBytes(minDeadBytes)
         , mMaxDeadBytes(maxDeadBytes)
+		, mDeadDecodedDataDeletionInterval(deadDecodedDataDeletionInterval)
 	{
 	}
 };
@@ -96,10 +119,10 @@ struct RAMCacheUsageInfo
 
 struct DiskCacheInfo
 {
-	uint32_t		mDiskCacheSize;				// In bytes
-	uint32_t		mMaxNumberOfCachedFiles;    // Max number of files that can be cached in the cache directory (+1 for the cache ini ctrl file). So a limit of 2 files will cache 2 files + 1 shared ctrl init file.   
-	uint32_t		mMaxNumberOfOpenFiles;      // Max number of files that can keep stay open 
-	uint32_t		mMinFileSizeToCache;        // Min file size in bytes to be cached.  This can prevent small 32 byte files from being cached for example.
+	uint32_t		mDiskCacheSize;				// In bytes. No new files are cached once this limit is reached.
+	uint32_t		mMaxNumberOfCachedFiles;    // Ignored. The system now keeps all the files as indicated by the web server. The only limit enforced is total disk cache size.    
+	uint32_t		mMaxNumberOfOpenFiles;      // Max number of file handles the disk cache system can open concurrently. This can help application manage the file handles available by OS. You want this number to be a minimum of 3 (1 FileCache.ini, 1 cache file write operation and 1 cache file read operation). Something like 16/24 will be a more reasonable number performance wise. Note that the handles are not reserved in advance so a higher max number does not impose any penalty.   
+	uint32_t		mMinFileSizeToCache;        // Ignored. The system now keeps all the files as indicated by the web server.
 	const utf8_t*	mDiskCacheDirectory;		// Full/Relative file path to writable directory. If relative, a valid full path should be returned when calling FileSystem::GetBaseDirectory(). SetDiskCacheUsage copies this string.
 
 	DiskCacheInfo()
@@ -170,6 +193,7 @@ struct Parameters
 	// Transport settings:
 	const char8_t*      mpUserAgent;                    // Defaults to NULL, which means "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/535.3 (KHTML, like Gecko) Safari/535.3 EAWebKit/"<EAWebKit Version>. The SetParameters function copies this string, mpUserAgent doesn't need to persist. See http://www.useragentstring.com/
 	uint32_t            mMaxTransportJobs;              // Defaults to 16. Specifies maximum number of concurrent transport jobs (e.g. HTTP requests).
+    uint32_t            mMaxParallelConnectionsPerHost; // Defaults to 6. Specifies the number of parallel connections maintained to host.
 	uint32_t			mHttpRequestResponseBufferSize; // Defaults to 4096. Number of bytes that a HTTP request/response handle has for transaction with server. This is only for request/response headers and does not put any limit on the actual resource size(say a css file).
 	uint32_t            mPageTimeoutSeconds;            // Defaults to 30 seconds. Page load timeout, in seconds. This timeout is applied to each individual resource. Your page does not have to finish loading within 30 seconds but this timeout is maximum time allowed between consecutive bytes received from the server (until the resource is fully loaded). 
 	bool				mHttpPipeliningEnabled;		    // Defaults to false. If enabled, the current implementation increases load times with slightly lower memory usage.
@@ -195,13 +219,14 @@ struct Parameters
     uint16_t   mPasswordMaskCharacter;                    // Defaults to the bullet character.  
 	//- End of WebCore::Settings section 
 
-	//Note by Arpit Baldeva: JavaScriptStackSize defaults to 128 KB. The core Webkit trunk allocates 2MB by default (well, they don't allocate but assume that the platform has on-demand commit capability) at the time of writing. This is not suitable for consoles with limited amount of memory and without on-demand commit capability.
-	// The user can tweak this size and may be get around by using a smaller size that fits their need. If the size is too small, some JavaScript code may not execute. This would fire an assert in the debug builds.
+	//Note by Arpit Baldeva: JavaScriptStackSize defaults to 128 KB. The core Webkit trunk allocates 0.5 MB by default (well, they don't allocate but assume that the platform has on-demand commit capability) at the time of writing. This is not suitable for consoles with limited amount of memory and without on-demand commit capability.
+	// The user can tweak this size and may be get around by using a smaller size that fits their need. If the size is too small, some JavaScript code may fail to execute. You will see a DebugLog similar to following.
+	// EAWebKit: JS Error - undefined (0): RangeError: Maximum call stack size exceeded.
 	uint32_t    mJavaScriptStackSize;
 	uint32_t	mJavaScriptHeapWatermark; // PC Only(Ignored on Consoles as default value is sufficient). The watermark at which JSCore engine starts to recollect blocks. Higher watermark means more speed of execution. 1 MB by default. 
 
 	// Font smoothing size
-	uint32_t    mSmoothFontSize;                // Default to 18.  If 0, all font sizes are smooth (anti-aliased), including bold and italic. Results can vary depending on font family and sizes (better in general for larger fonts).
+	uint32_t    mSmoothFontSize;                // Default to 18 css pixels.  If 0, all font sizes are smooth (anti-aliased), including bold and italic. Results can vary depending on font family and sizes (better in general for larger fonts).
 	uint32_t    mFontFilterColorIntensity;      // Default is 48.  0-255 range.  If mEnableFontAlphaFilter is true, it will filter any pen color that has a color channel <= to this intentsity value.  It is to avoid filtering bright colors (e.g white) which can sometimes look faded if alpha filtered.
 	bool        mEnableFontAlphaFilter;         // Default is false.  If set, it will lower the alpha values of glyphs (mostly used to counter blur from smoothing) if the pen color channels are under mFontFilterColorIntensity value.
 
@@ -367,7 +392,7 @@ public:
     virtual void DestroyJavascriptValueArray(JavascriptValue *args);
 
 	// Misc. Runtime APIs
-	virtual void ClearMemoryCache();// Call this to Free up Cache if running low on memory.
+	virtual void ClearMemoryCache();// Call this to Free up Cache if running low on memory. This clears up as much memory as possible including live decoded data for images.
 	virtual void NetworkStateChanged(bool isOnline); //Call this to indicate any change in network status. 
 	
 	// Add a user style sheet that affects all rendered pages.

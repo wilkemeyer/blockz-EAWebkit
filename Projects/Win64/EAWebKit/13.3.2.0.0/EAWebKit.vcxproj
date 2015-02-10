@@ -19,13 +19,13 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'pc64-vc-dev-debug|x64' " Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
-    <PlatformToolset>v100</PlatformToolset>
+    <PlatformToolset>v120</PlatformToolset>
     <UseDebugLibraries>True</UseDebugLibraries>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'pc64-vc-dev-opt|x64' " Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <CharacterSet>Unicode</CharacterSet>
-    <PlatformToolset>v100</PlatformToolset>
+    <PlatformToolset>v120</PlatformToolset>
     <UseDebugLibraries>False</UseDebugLibraries>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
@@ -66,7 +66,7 @@
       <AdditionalIncludeDirectories>"$(VSInstallDir)\VC\atlmfc\include";"$(WindowsSDKDir)\Include";"$(VSInstallDir)\VC\Include"</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Link>
-      <AdditionalDependencies>"$(WindowsSDKDir)\lib\x64\WinMM.lib";"$(WindowsSDKDir)\lib\x64\Gdi32.lib";"$(WindowsSDKDir)\lib\x64\User32.lib";"$(WindowsSDKDir)\lib\x64\advapi32.lib";"winmm.lib";"gdi32.lib";"ole32.lib";"user32.lib";"advapi32.lib";"shell32.lib";"shlwapi.lib";"version.lib";"ws2_32.lib";"Iphlpapi.lib";</AdditionalDependencies>
+      <AdditionalDependencies>"winmm.lib";"gdi32.lib";"ole32.lib";"user32.lib";"advapi32.lib";"shell32.lib";"shlwapi.lib";"version.lib";"ws2_32.lib";"Iphlpapi.lib"</AdditionalDependencies>
       <AdditionalLibraryDirectories>"$(VSInstallDir)\VC\ATLMFC\LIB\amd64";"$(VSInstallDir)\VC\LIB\amd64";"$(WindowsSDKDir)\lib\x64";"$(WindowsSDKDir)\lib\x64\prerelease"</AdditionalLibraryDirectories>
       <AdditionalOptions>-ignore:4089 </AdditionalOptions>
       <GenerateDebugInformation>TRUE</GenerateDebugInformation>
@@ -145,7 +145,7 @@
       <AdditionalIncludeDirectories>"$(VSInstallDir)\VC\atlmfc\include";"$(WindowsSDKDir)\Include";"$(VSInstallDir)\VC\Include"</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Link>
-      <AdditionalDependencies>"$(WindowsSDKDir)\lib\x64\WinMM.lib";"$(WindowsSDKDir)\lib\x64\Gdi32.lib";"$(WindowsSDKDir)\lib\x64\User32.lib";"$(WindowsSDKDir)\lib\x64\advapi32.lib";"winmm.lib";"gdi32.lib";"ole32.lib";"user32.lib";"advapi32.lib";"shell32.lib";"shlwapi.lib";"version.lib";"ws2_32.lib";"Iphlpapi.lib";</AdditionalDependencies>
+      <AdditionalDependencies>"winmm.lib";"gdi32.lib";"ole32.lib";"user32.lib";"advapi32.lib";"shell32.lib";"shlwapi.lib";"version.lib";"ws2_32.lib";"Iphlpapi.lib"</AdditionalDependencies>
       <AdditionalLibraryDirectories>"$(VSInstallDir)\VC\ATLMFC\LIB\amd64";"$(VSInstallDir)\VC\LIB\amd64";"$(WindowsSDKDir)\lib\x64";"$(WindowsSDKDir)\lib\x64\prerelease"</AdditionalLibraryDirectories>
       <AdditionalOptions>-ignore:4089 </AdditionalOptions>
       <GenerateDebugInformation>TRUE</GenerateDebugInformation>
@@ -5504,7 +5504,8 @@
   </ImportGroup>
   <ProjectExtensions>
     <VisualStudio>
-      <UserProperties platform_pc64-vc-dev-debug_x64="vc64" vc64-compiler="$(VSInstallDir)\VC\BIN\x86_amd64\cl.exe" vc64-compiler_clang="" vc64-linker="$(VSInstallDir)\VC\BIN\x86_amd64\link.exe" vc64-asm="$(VSInstallDir)\VC\BIN\x86_amd64\ml64.exe" vc64-postlink.program="$(WindowsSDKDir)\BIN\mt.exe" platform_pc64-vc-dev-opt_x64="vc64" build.env.PATH="$(VSInstallDir)\VC\BIN;c:\Program Files (x86)\Microsoft Visual Studio 10.0\Common7\IDE"></UserProperties>
+      <UserProperties platform_pc64-vc-dev-debug_x64="vc64" vc64-compiler="$(VSInstallDir)\VC\BIN\x86_amd64\cl.exe" vc64-compiler_clang="" vc64-linker="$(VSInstallDir)\VC\BIN\x86_amd64\link.exe" vc64-asm="$(VSInstallDir)\VC\BIN\x86_amd64\ml64.exe" vc64-postlink.program="$(WindowsSDKDir)\BIN\mt.exe" platform_pc64-vc-dev-opt_x64="vc64" build.env.PATH="$(VSInstallDir)\VC\BIN;c:\Program Files (x86)\Microsoft Visual Studio 10.0\Common7\IDE">
+      </UserProperties>
     </VisualStudio>
   </ProjectExtensions>
 </Project>
