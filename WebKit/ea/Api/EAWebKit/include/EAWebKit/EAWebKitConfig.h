@@ -142,7 +142,7 @@ They are kept here just for convenience.														*
 // Controls if a default platform-specific file system is available for use.
 //
 #ifndef EAWEBKIT_DEFAULT_FILE_SYSTEM_ENABLED
-    #define EAWEBKIT_DEFAULT_FILE_SYSTEM_ENABLED 1
+    #define EAWEBKIT_DEFAULT_FILE_SYSTEM_ENABLED 0
 #endif
 
 #endif // EAWEBKIT_EAWEBKITCONFIG_H
