@@ -19,6 +19,26 @@
 
 #include "pngpriv.h"
 
+/**
+ * Added by FWI - RE-Implement changes made by EA
+ * To allow to set the default - allocator 
+ */
+typedef png_voidp	(*png_malloc_ptr_type)(size_t);
+typedef void		(*png_free_ptr_type)(void*);
+
+png_malloc_ptr_type g_png_default_malloc_ptr = NULL;
+png_free_ptr_type   g_png_default_free_ptr   = NULL;
+
+void png_set_default_mem_fn(png_default_malloc_ptr malloc_fn, png_default_free_ptr free_fn)
+{
+	g_png_default_malloc_ptr = malloc_fn;
+	g_png_default_free_ptr   = free_fn;
+}
+
+
+/** END OF Additions by FWI **/
+
+
 #if defined(PNG_READ_SUPPORTED) || defined(PNG_WRITE_SUPPORTED)
 /* Free a png_struct */
 void /* PRIVATE */
@@ -87,12 +107,20 @@ png_malloc_base,(png_const_structrp png_ptr, png_alloc_size_t size),
       )
    {
 #ifdef PNG_USER_MEM_SUPPORTED
-      if (png_ptr != NULL && png_ptr->malloc_fn != NULL)
+      if (png_ptr != NULL && png_ptr->malloc_fn != NULL){
          return png_ptr->malloc_fn(png_constcast(png_structrp,png_ptr), size);
 
-      else
+	  }else{
 #endif
-         return malloc((size_t)size); /* checked for truncation above */
+		 if(g_png_default_malloc_ptr != NULL){
+			return (*g_png_default_malloc_ptr)((size_t)size);
+		 }else{
+            return malloc((size_t)size); /* checked for truncation above */
+		 }
+
+#ifdef PNG_USER_MEM_SUPPORTED
+	  }
+#endif
    }
 
    else
@@ -249,7 +277,11 @@ png_free_default,(png_const_structrp png_ptr, png_voidp ptr),PNG_DEPRECATED)
       return;
 #endif /* USER_MEM */
 
-   free(ptr);
+   if(g_png_default_free_ptr != NULL){
+	  (*g_png_default_free_ptr)(ptr);
+   }else{
+	  free(ptr);
+   }
 }
 
 #ifdef PNG_USER_MEM_SUPPORTED

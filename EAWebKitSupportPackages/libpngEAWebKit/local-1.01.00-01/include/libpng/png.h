@@ -1010,6 +1010,18 @@ typedef PNG_CALLBACK(png_voidp, *png_malloc_ptr, (png_structp,
     png_alloc_size_t));
 typedef PNG_CALLBACK(void, *png_free_ptr, (png_structp, png_voidp));
 
+
+/** 
+ * FWI: RE-Implement changes made by EA,
+ *		which allows to set a default-allocator 
+ */
+typedef	png_voidp	(*png_default_malloc_ptr)(png_size_t);
+typedef void		(*png_default_free_ptr)(png_voidp);
+
+void png_set_default_mem_fn(png_default_malloc_ptr malloc_fn, png_default_free_ptr free_fn);
+/** End of Additions by FWI **/
+
+
 /* Section 3: exported functions
  * Here are the function definitions most commonly used.  This is not
  * the place to find out how to use libpng.  See libpng-manual.txt for the
