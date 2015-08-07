@@ -79,6 +79,12 @@
 
 #define SIZEOF(object)	((size_t) sizeof(object))
 
+/*
+ * The modules that use fread() and fwrite() always invoke them through
+ * these macros.  On some systems you may need to twiddle the argument casts.
+ * CAUTION: argument order is different from underlying functions!
+ */
+
 
 #if defined(LIBJPEG_EA_SUPPORT_ENABLED) && LIBJPEG_EA_SUPPORT_ENABLED
 
@@ -100,8 +106,10 @@
      * CAUTION: argument order is different from underlying functions!
      */
 
-    #define JFREAD(file,buf,sizeofbuf)  \
-      ((size_t) fread((void *) (buf), (size_t) 1, (size_t) (sizeofbuf), (file)))
-    #define JFWRITE(file,buf,sizeofbuf)  \
-      ((size_t) fwrite((const void *) (buf), (size_t) 1, (size_t) (sizeofbuf), (file)))
+	#define JFREAD(file,buf,sizeofbuf)  \
+	  ((size_t) fread((void *) (buf), (size_t) 1, (size_t) (sizeofbuf), (file)))
+	#define JFWRITE(file,buf,sizeofbuf)  \
+	  ((size_t) fwrite((const void *) (buf), (size_t) 1, (size_t) (sizeofbuf), (file)))
+
 #endif
+

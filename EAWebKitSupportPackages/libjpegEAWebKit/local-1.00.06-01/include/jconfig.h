@@ -1,5 +1,5 @@
 /* jconfig.vc --- jconfig.h for Microsoft Visual C++ on Windows 95 or NT. */
-/* see jconfig.doc for explanations */
+/* see jconfig.txt for explanations */
 
 #define HAVE_PROTOTYPES
 #define HAVE_UNSIGNED_CHAR
@@ -14,11 +14,17 @@
 #undef NEED_FAR_POINTERS	/* we presume a 32-bit flat memory model */
 #undef NEED_SHORT_EXTERNAL_NAMES
 #undef INCOMPLETE_TYPES_BROKEN
-#define NO_GETENV /* Note by Paul Pedriana: We unilaterally define this at Electronic Arts, as this leads to the library reading system information, which is bad design. */
+#define NO_GETENV	/* Note by Paul Pedriana: We unilaterally define this at Electronic Arts, as this leads to the library reading system information, which is bad design. */
 
-/* Define "boolean" as unsigned char, not int, per Windows custom */
+/* Define "boolean" as unsigned char, not enum, per Windows custom */
 #ifndef __RPCNDR_H__		/* don't conflict if rpcndr.h already read */
 typedef unsigned char boolean;
+#endif
+#ifndef FALSE			/* in case these macros already exist */
+#define FALSE	0		/* values of boolean */
+#endif
+#ifndef TRUE
+#define TRUE	1
 #endif
 #define HAVE_BOOLEAN		/* prevent jmorecfg.h from redefining it */
 

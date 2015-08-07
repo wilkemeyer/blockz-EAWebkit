@@ -139,8 +139,10 @@
     <ClInclude Include="..\..\..\..\EAWebKitSupportPackages\libjpegEAWebKit\local-1.00.06-01\include\jmorecfg.h" />
     <ClInclude Include="..\..\..\..\EAWebKitSupportPackages\libjpegEAWebKit\local-1.00.06-01\include\jpeglib.h" />
     <ClInclude Include="..\..\..\..\EAWebKitSupportPackages\libjpegEAWebKit\local-1.00.06-01\include\jsupport_ea.h" />
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\libjpegEAWebKit\local-1.00.06-01\source\jaricom.c" />
     <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\libjpegEAWebKit\local-1.00.06-01\source\jcapimin.c" />
     <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\libjpegEAWebKit\local-1.00.06-01\source\jcapistd.c" />
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\libjpegEAWebKit\local-1.00.06-01\source\jcarith.c" />
     <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\libjpegEAWebKit\local-1.00.06-01\source\jccoefct.c" />
     <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\libjpegEAWebKit\local-1.00.06-01\source\jccolor.c" />
     <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\libjpegEAWebKit\local-1.00.06-01\source\jcdctmgr.c" />
@@ -151,12 +153,12 @@
     <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\libjpegEAWebKit\local-1.00.06-01\source\jcmaster.c" />
     <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\libjpegEAWebKit\local-1.00.06-01\source\jcomapi.c" />
     <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\libjpegEAWebKit\local-1.00.06-01\source\jcparam.c" />
-    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\libjpegEAWebKit\local-1.00.06-01\source\jcphuff.c" />
     <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\libjpegEAWebKit\local-1.00.06-01\source\jcprepct.c" />
     <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\libjpegEAWebKit\local-1.00.06-01\source\jcsample.c" />
     <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\libjpegEAWebKit\local-1.00.06-01\source\jctrans.c" />
     <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\libjpegEAWebKit\local-1.00.06-01\source\jdapimin.c" />
     <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\libjpegEAWebKit\local-1.00.06-01\source\jdapistd.c" />
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\libjpegEAWebKit\local-1.00.06-01\source\jdarith.c" />
     <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\libjpegEAWebKit\local-1.00.06-01\source\jdatadst.c" />
     <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\libjpegEAWebKit\local-1.00.06-01\source\jdatasrc.c" />
     <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\libjpegEAWebKit\local-1.00.06-01\source\jdcoefct.c" />
@@ -168,7 +170,6 @@
     <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\libjpegEAWebKit\local-1.00.06-01\source\jdmarker.c" />
     <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\libjpegEAWebKit\local-1.00.06-01\source\jdmaster.c" />
     <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\libjpegEAWebKit\local-1.00.06-01\source\jdmerge.c" />
-    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\libjpegEAWebKit\local-1.00.06-01\source\jdphuff.c" />
     <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\libjpegEAWebKit\local-1.00.06-01\source\jdpostct.c" />
     <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\libjpegEAWebKit\local-1.00.06-01\source\jdsample.c" />
     <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\libjpegEAWebKit\local-1.00.06-01\source\jdtrans.c" />
@@ -179,7 +180,6 @@
     <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\libjpegEAWebKit\local-1.00.06-01\source\jidctflt.c" />
     <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\libjpegEAWebKit\local-1.00.06-01\source\jidctfst.c" />
     <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\libjpegEAWebKit\local-1.00.06-01\source\jidctint.c" />
-    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\libjpegEAWebKit\local-1.00.06-01\source\jidctred.c" />
     <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\libjpegEAWebKit\local-1.00.06-01\source\jmemmgr.c" />
     <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\libjpegEAWebKit\local-1.00.06-01\source\jquant1.c" />
     <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\libjpegEAWebKit\local-1.00.06-01\source\jquant2.c" />

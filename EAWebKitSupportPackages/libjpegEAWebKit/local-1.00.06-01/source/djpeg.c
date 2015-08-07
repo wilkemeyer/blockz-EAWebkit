@@ -2,6 +2,7 @@
  * djpeg.c
  *
  * Copyright (C) 1991-1997, Thomas G. Lane.
+ * Modified 2009-2013 by Guido Vollbeding.
  * This file is part of the Independent JPEG Group's software.
  * For conditions of distribution and use, see the accompanying README file.
  *
@@ -29,6 +30,10 @@
 #include <ctype.h>		/* to declare isprint() */
 
 #ifdef USE_CCOMMAND		/* command-line reader for Macintosh */
+#ifdef __MWERKS__
+#include <SIOUX.h>              /* Metrowerks needs this */
+#include <console.h>		/* ... and this */
+#endif
 #ifdef THINK_C
 #include <console.h>		/* Think declares it here */
 #endif
@@ -293,7 +298,7 @@ parse_switches (j_decompress_ptr cinfo, int argc, char **argv,
       cinfo->mem->max_memory_to_use = lval * 1000L;
 
     } else if (keymatch(arg, "nosmooth", 3)) {
-      /* Suppress fancy upsampling */
+      /* Suppress fancy upsampling. */
       cinfo->do_fancy_upsampling = FALSE;
 
     } else if (keymatch(arg, "onepass", 3)) {
@@ -322,8 +327,8 @@ parse_switches (j_decompress_ptr cinfo, int argc, char **argv,
       /* Scale the output image by a fraction M/N. */
       if (++argn >= argc)	/* advance to next argument */
 	usage();
-      if (sscanf(argv[argn], "%d/%d",
-		 &cinfo->scale_num, &cinfo->scale_denom) != 2)
+      if (sscanf(argv[argn], "%u/%u",
+		 &cinfo->scale_num, &cinfo->scale_denom) < 1)
 	usage();
 
     } else if (keymatch(arg, "targa", 1)) {

@@ -44,9 +44,6 @@
     <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\libjpegEAWebKit\local-1.00.06-01\source\jcdctmgr.c">
       <Filter>source</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\libjpegEAWebKit\local-1.00.06-01\source\jchuff.c">
-      <Filter>source</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\libjpegEAWebKit\local-1.00.06-01\source\jcinit.c">
       <Filter>source</Filter>
     </ClCompile>
@@ -63,9 +60,6 @@
       <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\libjpegEAWebKit\local-1.00.06-01\source\jcparam.c">
-      <Filter>source</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\libjpegEAWebKit\local-1.00.06-01\source\jcphuff.c">
       <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\libjpegEAWebKit\local-1.00.06-01\source\jcprepct.c">
@@ -98,9 +92,6 @@
     <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\libjpegEAWebKit\local-1.00.06-01\source\jddctmgr.c">
       <Filter>source</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\libjpegEAWebKit\local-1.00.06-01\source\jdhuff.c">
-      <Filter>source</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\libjpegEAWebKit\local-1.00.06-01\source\jdinput.c">
       <Filter>source</Filter>
     </ClCompile>
@@ -114,9 +105,6 @@
       <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\libjpegEAWebKit\local-1.00.06-01\source\jdmerge.c">
-      <Filter>source</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\libjpegEAWebKit\local-1.00.06-01\source\jdphuff.c">
       <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\libjpegEAWebKit\local-1.00.06-01\source\jdpostct.c">
@@ -149,9 +137,6 @@
     <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\libjpegEAWebKit\local-1.00.06-01\source\jidctint.c">
       <Filter>source</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\libjpegEAWebKit\local-1.00.06-01\source\jidctred.c">
-      <Filter>source</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\libjpegEAWebKit\local-1.00.06-01\source\jmemmgr.c">
       <Filter>source</Filter>
     </ClCompile>
@@ -165,6 +150,21 @@
       <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\libjpegEAWebKit\local-1.00.06-01\source\jutils.c">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\libjpegEAWebKit\local-1.00.06-01\source\jaricom.c">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\libjpegEAWebKit\local-1.00.06-01\source\jcarith.c">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\libjpegEAWebKit\local-1.00.06-01\source\jdarith.c">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\libjpegEAWebKit\local-1.00.06-01\source\jchuff.c">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\libjpegEAWebKit\local-1.00.06-01\source\jdhuff.c">
       <Filter>source</Filter>
     </ClCompile>
   </ItemGroup>
