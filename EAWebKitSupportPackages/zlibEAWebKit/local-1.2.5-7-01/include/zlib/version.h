@@ -44,7 +44,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define ZLIB_VERSION_MINOR   2
 //! This define indicates the patch version number for the bigfile package.
 //! \sa ZLIB_VERSION
-#define ZLIB_VERSION_PATCH   7
+#define ZLIB_VERSION_PATCH   8
 
 /*!
  * This is a utility macro that users may use to create a single version number
