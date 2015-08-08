@@ -17,7 +17,7 @@ See: http://gpl.ea.com
   - Updated Bundled Pixman (v0.32.6)
   - Updated Bundled cairo (v1.14.2)
   -  **Note**: All libs are patched to use EAWebKit's memory allocation routines (the old-bundled-libs were also patched)
- - Changed file-naming of the result libraries:
+- Changed file-naming of the result libraries:
    - Windows 32Bit [Debug]    EAWebKitd.dll
    - Windows 32Bit            EAWebKit.dll
    - Windows 64Bit [Debug]    EAWebKit64d.dll
@@ -32,4 +32,4 @@ This fork is intended for being used in Blockz (project-codename, final product-
 It's mainly used for our UI System.
 
 ### Maintainer
-Florian Wilkemeyer - <fw@f-ws.de> 
+Florian Wilkemeyer - <fw@f-ws.de>
