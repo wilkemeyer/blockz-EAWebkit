@@ -1390,7 +1390,26 @@ bool OutlineFont::RenderGlyphBitmap(const GlyphBitmap** pGlyphBitmap, GlyphId gl
                         mGlyphBitmap.mnStride       = (uint32_t)pGlyphSlot->bitmap.pitch;
                         //mGlyphBitmap.mBitmapFormat  = kBFGrayscale;
                         mGlyphBitmap.mBitmapFormat  = (mFontDescription.mSmooth == kSmoothEnabled) ? kBFGrayscale : kBFMonochrome;
-                        mGlyphBitmap.mpData         = pGlyphSlot->bitmap.buffer;
+
+						// 
+						// FWI: Applied https://github.com/xebecnan/EAWebkit/commit/839d66425470cfa7df48abbfe2b984a822b19e9f
+						// which fixes rendering of non-latin fonts (such as korean or chineese)
+						//
+						switch(static_cast<FT_Pixel_Mode>(pGlyphSlot->bitmap.pixel_mode))
+						{
+							case FT_PIXEL_MODE_MONO:
+								mGlyphBitmap.mBitmapFormat = kBFMonochrome;
+							break;
+							case FT_PIXEL_MODE_GRAY:
+								mGlyphBitmap.mBitmapFormat = kBFGrayscale;
+							break;
+							case FT_PIXEL_MODE_LCD:
+							case FT_PIXEL_MODE_LCD_V:
+								mGlyphBitmap.mBitmapFormat = kBFGrayscale;
+							break;
+						}
+						
+						mGlyphBitmap.mpData         = pGlyphSlot->bitmap.buffer;
                     }
                 #endif
 
