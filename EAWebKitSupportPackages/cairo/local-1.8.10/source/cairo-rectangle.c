@@ -15,7 +15,7 @@
  *
  * You should have received a copy of the LGPL along with this library
  * in the file COPYING-LGPL-2.1; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ * Foundation, Inc., 51 Franklin Street, Suite 500, Boston, MA 02110-1335, USA
  * You should have received a copy of the MPL along with this library
  * in the file COPYING-MPL-1.1
  *
@@ -38,6 +38,15 @@
  */
 
 #include "cairoint.h"
+
+#include "cairo-box-inline.h"
+
+const cairo_rectangle_int_t _cairo_empty_rectangle = { 0, 0, 0, 0 };
+const cairo_rectangle_int_t _cairo_unbounded_rectangle = {
+     CAIRO_RECT_INT_MIN, CAIRO_RECT_INT_MIN,
+     CAIRO_RECT_INT_MAX - CAIRO_RECT_INT_MIN,
+     CAIRO_RECT_INT_MAX - CAIRO_RECT_INT_MIN,
+};
 
 cairo_private void
 _cairo_box_from_doubles (cairo_box_t *box,
@@ -69,6 +78,17 @@ _cairo_box_from_rectangle (cairo_box_t                 *box,
     box->p1.y = _cairo_fixed_from_int (rect->y);
     box->p2.x = _cairo_fixed_from_int (rect->x + rect->width);
     box->p2.y = _cairo_fixed_from_int (rect->y + rect->height);
+}
+
+void
+_cairo_boxes_get_extents (const cairo_box_t *boxes,
+			  int num_boxes,
+			  cairo_box_t *extents)
+{
+    assert (num_boxes > 0);
+    *extents = *boxes;
+    while (--num_boxes)
+	_cairo_box_add_box (extents, ++boxes);
 }
 
 /* XXX We currently have a confusing mix of boxes and rectangles as
@@ -126,6 +146,29 @@ _cairo_rectangle_intersect (cairo_rectangle_int_t *dst,
     }
 }
 
+/* Extends the dst rectangle to also contain src.
+ * If one of the rectangles is empty, the result is undefined
+ */
+void
+_cairo_rectangle_union (cairo_rectangle_int_t *dst,
+			const cairo_rectangle_int_t *src)
+{
+    int x1, y1, x2, y2;
+
+    x1 = MIN (dst->x, src->x);
+    y1 = MIN (dst->y, src->y);
+    /* Beware the unsigned promotion, fortunately we have bits to spare
+     * as (CAIRO_RECT_INT_MAX - CAIRO_RECT_INT_MIN) < UINT_MAX
+     */
+    x2 = MAX (dst->x + (int) dst->width,  src->x + (int) src->width);
+    y2 = MAX (dst->y + (int) dst->height, src->y + (int) src->height);
+
+    dst->x = x1;
+    dst->y = y1;
+    dst->width  = x2 - x1;
+    dst->height = y2 - y1;
+}
+
 #define P1x (line->p1.x)
 #define P1y (line->p1.y)
 #define P2x (line->p2.x)
@@ -146,15 +189,15 @@ _cairo_rectangle_intersect (cairo_rectangle_int_t *dst,
  */
 
 cairo_bool_t
-_cairo_box_intersects_line_segment (cairo_box_t *box, cairo_line_t *line)
+_cairo_box_intersects_line_segment (const cairo_box_t *box, cairo_line_t *line)
 {
     cairo_fixed_t t1=0, t2=0, t3=0, t4=0;
     cairo_int64_t t1y, t2y, t3x, t4x;
 
     cairo_fixed_t xlen, ylen;
 
-    if (_cairo_box_contains_point(box, &line->p1) ||
-	_cairo_box_contains_point(box, &line->p2))
+    if (_cairo_box_contains_point (box, &line->p1) ||
+	_cairo_box_contains_point (box, &line->p2))
 	return TRUE;
 
     xlen = P2x - P1x;
@@ -215,11 +258,42 @@ _cairo_box_intersects_line_segment (cairo_box_t *box, cairo_line_t *line)
     return FALSE;
 }
 
-cairo_bool_t
-_cairo_box_contains_point (cairo_box_t *box, cairo_point_t *point)
+static cairo_status_t
+_cairo_box_add_spline_point (void *closure,
+			     const cairo_point_t *point,
+			     const cairo_slope_t *tangent)
 {
-    if (point->x < box->p1.x || point->x > box->p2.x ||
-	point->y < box->p1.y || point->y > box->p2.y)
-	return FALSE;
-    return TRUE;
+    _cairo_box_add_point (closure, point);
+
+    return CAIRO_STATUS_SUCCESS;
+}
+
+/* assumes a has been previously added */
+void
+_cairo_box_add_curve_to (cairo_box_t *extents,
+			 const cairo_point_t *a,
+			 const cairo_point_t *b,
+			 const cairo_point_t *c,
+			 const cairo_point_t *d)
+{
+    _cairo_box_add_point (extents, d);
+    if (!_cairo_box_contains_point (extents, b) ||
+	!_cairo_box_contains_point (extents, c))
+    {
+	cairo_status_t status;
+
+	status = _cairo_spline_bound (_cairo_box_add_spline_point,
+				      extents, a, b, c, d);
+	assert (status == CAIRO_STATUS_SUCCESS);
+    }
+}
+
+void
+_cairo_rectangle_int_from_double (cairo_rectangle_int_t *recti,
+				  const cairo_rectangle_t *rectf)
+{
+	recti->x = floor (rectf->x);
+	recti->y = floor (rectf->y);
+	recti->width  = ceil (rectf->x + rectf->width) - floor (rectf->x);
+	recti->height = ceil (rectf->y + rectf->height) - floor (rectf->y);
 }

@@ -1,7 +1,6 @@
 /* cairo-output-stream.c: Output stream abstraction
  *
  * Copyright © 2005 Red Hat, Inc
- * Copyright © 2011 Electronic Arts, Inc.
  *
  * This library is free software; you can redistribute it and/or
  * modify it either under the terms of the GNU Lesser General Public
@@ -13,7 +12,7 @@
  *
  * You should have received a copy of the LGPL along with this library
  * in the file COPYING-LGPL-2.1; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+ * Foundation, Inc., 51 Franklin Street, Suite 500, Boston, MA 02110-1335, USA
  * You should have received a copy of the MPL along with this library
  * in the file COPYING-MPL-1.1
  *
@@ -38,11 +37,12 @@
 #include "cairoint.h"
 
 #include "cairo-output-stream-private.h"
+
+#include "cairo-array-private.h"
+#include "cairo-error-private.h"
 #include "cairo-compiler-private.h"
 
 #include <stdio.h>
-#include <locale.h>
-#include <ctype.h>
 #include <errno.h>
 
 /* Numbers printed with %f are printed with this number of significant
@@ -71,9 +71,11 @@
 void
 _cairo_output_stream_init (cairo_output_stream_t            *stream,
 			   cairo_output_stream_write_func_t  write_func,
+			   cairo_output_stream_flush_func_t  flush_func,
 			   cairo_output_stream_close_func_t  close_func)
 {
     stream->write_func = write_func;
+    stream->flush_func = flush_func;
     stream->close_func = close_func;
     stream->position = 0;
     stream->status = CAIRO_STATUS_SUCCESS;
@@ -88,6 +90,7 @@ _cairo_output_stream_fini (cairo_output_stream_t *stream)
 
 const cairo_output_stream_t _cairo_output_stream_nil = {
     NULL, /* write_func */
+    NULL, /* flush_func */
     NULL, /* close_func */
     0,    /* position */
     CAIRO_STATUS_NO_MEMORY,
@@ -96,6 +99,7 @@ const cairo_output_stream_t _cairo_output_stream_nil = {
 
 static const cairo_output_stream_t _cairo_output_stream_nil_write_error = {
     NULL, /* write_func */
+    NULL, /* flush_func */
     NULL, /* close_func */
     0,    /* position */
     CAIRO_STATUS_WRITE_ERROR,
@@ -143,16 +147,14 @@ _cairo_output_stream_create (cairo_write_func_t		write_func,
 {
     cairo_output_stream_with_closure_t *stream;
 
-    //+EAWebKitChange
-    //11/10/2011
-    stream = cairo_malloc (sizeof (cairo_output_stream_with_closure_t));
-    //-EAWebKitChange
-    if (stream == NULL) {
+    stream = malloc (sizeof (cairo_output_stream_with_closure_t));
+    if (unlikely (stream == NULL)) {
 	_cairo_error_throw (CAIRO_STATUS_NO_MEMORY);
 	return (cairo_output_stream_t *) &_cairo_output_stream_nil;
     }
 
-    _cairo_output_stream_init (&stream->base, closure_write, closure_close);
+    _cairo_output_stream_init (&stream->base,
+			       closure_write, NULL, closure_close);
     stream->write_func = write_func;
     stream->close_func = close_func;
     stream->closure = closure;
@@ -171,19 +173,40 @@ _cairo_output_stream_create_in_error (cairo_status_t status)
     if (status == CAIRO_STATUS_WRITE_ERROR)
 	return (cairo_output_stream_t *) &_cairo_output_stream_nil_write_error;
 
-    //+EAWebKitChange
-    //11/10/2011
-    stream = cairo_malloc (sizeof (cairo_output_stream_t));
-    //-EAWebKitChange
-    if (stream == NULL) {
+    stream = malloc (sizeof (cairo_output_stream_t));
+    if (unlikely (stream == NULL)) {
 	_cairo_error_throw (CAIRO_STATUS_NO_MEMORY);
 	return (cairo_output_stream_t *) &_cairo_output_stream_nil;
     }
 
-    _cairo_output_stream_init (stream, NULL, NULL);
+    _cairo_output_stream_init (stream, NULL, NULL, NULL);
     stream->status = status;
 
     return stream;
+}
+
+cairo_status_t
+_cairo_output_stream_flush (cairo_output_stream_t *stream)
+{
+    cairo_status_t status;
+
+    if (stream->closed)
+	return stream->status;
+
+    if (stream == &_cairo_output_stream_nil ||
+	stream == &_cairo_output_stream_nil_write_error)
+    {
+	return stream->status;
+    }
+
+    if (stream->flush_func) {
+	status = stream->flush_func (stream);
+	/* Don't overwrite a pre-existing status failure. */
+	if (stream->status == CAIRO_STATUS_SUCCESS)
+	    stream->status = status;
+    }
+
+    return stream->status;
 }
 
 cairo_status_t
@@ -226,10 +249,7 @@ _cairo_output_stream_destroy (cairo_output_stream_t *stream)
     }
 
     status = _cairo_output_stream_fini (stream);
-    //+EAWebKitChange
-    //11/10/2011
-    cairo_free (stream);
-    //-EAWebKitChange
+    free (stream);
 
     return status;
 }
@@ -282,7 +302,6 @@ _cairo_output_stream_write_hex_string (cairo_output_stream_t *stream,
 static void
 _cairo_dtostr (char *buffer, size_t size, double d, cairo_bool_t limited_precision)
 {
-    struct lconv *locale_data;
     const char *decimal_point;
     int decimal_point_len;
     char *p;
@@ -293,8 +312,7 @@ _cairo_dtostr (char *buffer, size_t size, double d, cairo_bool_t limited_precisi
     if (d == 0.0)
 	d = 0.0;
 
-    locale_data = localeconv ();
-    decimal_point = locale_data->decimal_point;
+    decimal_point = cairo_get_locale_decimal_point ();
     decimal_point_len = strlen (decimal_point);
 
     assert (decimal_point_len != 0);
@@ -322,7 +340,7 @@ _cairo_dtostr (char *buffer, size_t size, double d, cairo_bool_t limited_precisi
 	    if (*p == '+' || *p == '-')
 		p++;
 
-	    while (isdigit (*p))
+	    while (_cairo_isdigit (*p))
 		p++;
 
 	    if (strncmp (p, decimal_point, decimal_point_len) == 0)
@@ -343,7 +361,7 @@ _cairo_dtostr (char *buffer, size_t size, double d, cairo_bool_t limited_precisi
     if (*p == '+' || *p == '-')
 	p++;
 
-    while (isdigit (*p))
+    while (_cairo_isdigit (*p))
 	p++;
 
     if (strncmp (p, decimal_point, decimal_point_len) == 0) {
@@ -415,7 +433,7 @@ _cairo_output_stream_vprintf (cairo_output_stream_t *stream,
 	    f++;
         }
 
-	while (isdigit (*f))
+	while (_cairo_isdigit (*f))
 	    f++;
 
 	length_modifier = 0;
@@ -509,6 +527,45 @@ _cairo_output_stream_printf (cairo_output_stream_t *stream,
     va_end (ap);
 }
 
+/* Matrix elements that are smaller than the value of the largest element * MATRIX_ROUNDING_TOLERANCE
+ * are rounded down to zero. */
+#define MATRIX_ROUNDING_TOLERANCE 1e-12
+
+void
+_cairo_output_stream_print_matrix (cairo_output_stream_t *stream,
+				   const cairo_matrix_t  *matrix)
+{
+    cairo_matrix_t m;
+    double s, e;
+
+    m = *matrix;
+    s = fabs (m.xx);
+    if (fabs (m.xy) > s)
+	s = fabs (m.xy);
+    if (fabs (m.yx) > s)
+	s = fabs (m.yx);
+    if (fabs (m.yy) > s)
+	s = fabs (m.yy);
+
+    e = s * MATRIX_ROUNDING_TOLERANCE;
+    if (fabs(m.xx) < e)
+	m.xx = 0;
+    if (fabs(m.xy) < e)
+	m.xy = 0;
+    if (fabs(m.yx) < e)
+	m.yx = 0;
+    if (fabs(m.yy) < e)
+	m.yy = 0;
+    if (fabs(m.x0) < e)
+	m.x0 = 0;
+    if (fabs(m.y0) < e)
+	m.y0 = 0;
+
+    _cairo_output_stream_printf (stream,
+				 "%f %f %f %f %f %f",
+				 m.xx, m.yx, m.xy, m.yy, m.x0, m.y0);
+}
+
 long
 _cairo_output_stream_get_position (cairo_output_stream_t *stream)
 {
@@ -578,16 +635,14 @@ _cairo_output_stream_create_for_file (FILE *file)
 	return (cairo_output_stream_t *) &_cairo_output_stream_nil_write_error;
     }
 
-    //+EAWebKitChange
-    //11/10/2011
-    stream = cairo_malloc (sizeof *stream);
-    //-EAWebKitChange
-    if (stream == NULL) {
+    stream = malloc (sizeof *stream);
+    if (unlikely (stream == NULL)) {
 	_cairo_error_throw (CAIRO_STATUS_NO_MEMORY);
 	return (cairo_output_stream_t *) &_cairo_output_stream_nil;
     }
 
-    _cairo_output_stream_init (&stream->base, stdio_write, stdio_flush);
+    _cairo_output_stream_init (&stream->base,
+			       stdio_write, stdio_flush, stdio_flush);
     stream->file = file;
 
     return &stream->base;
@@ -614,17 +669,15 @@ _cairo_output_stream_create_for_filename (const char *filename)
 	}
     }
 
-    //+EAWebKitChange
-    //11/10/2011
-    stream = cairo_malloc (sizeof *stream);
-    //-EAWebKitChange
-    if (stream == NULL) {
+    stream = malloc (sizeof *stream);
+    if (unlikely (stream == NULL)) {
 	fclose (file);
 	_cairo_error_throw (CAIRO_STATUS_NO_MEMORY);
 	return (cairo_output_stream_t *) &_cairo_output_stream_nil;
     }
 
-    _cairo_output_stream_init (&stream->base, stdio_write, stdio_close);
+    _cairo_output_stream_init (&stream->base,
+			       stdio_write, stdio_flush, stdio_close);
     stream->file = file;
 
     return &stream->base;
@@ -660,19 +713,42 @@ _cairo_memory_stream_create (void)
 {
     memory_stream_t *stream;
 
-    //+EAWebKitChange
-    //11/10/2011
-    stream = cairo_malloc (sizeof *stream);
-    //-EAWebKitChange
-    if (stream == NULL) {
+    stream = malloc (sizeof *stream);
+    if (unlikely (stream == NULL)) {
 	_cairo_error_throw (CAIRO_STATUS_NO_MEMORY);
 	return (cairo_output_stream_t *) &_cairo_output_stream_nil;
     }
 
-    _cairo_output_stream_init (&stream->base, memory_write, memory_close);
+    _cairo_output_stream_init (&stream->base, memory_write, NULL, memory_close);
     _cairo_array_init (&stream->array, 1);
 
     return &stream->base;
+}
+
+cairo_status_t
+_cairo_memory_stream_destroy (cairo_output_stream_t *abstract_stream,
+			      unsigned char **data_out,
+			      unsigned long *length_out)
+{
+    memory_stream_t *stream;
+    cairo_status_t status;
+
+    status = abstract_stream->status;
+    if (unlikely (status))
+	return _cairo_output_stream_destroy (abstract_stream);
+
+    stream = (memory_stream_t *) abstract_stream;
+
+    *length_out = _cairo_array_num_elements (&stream->array);
+    *data_out = malloc (*length_out);
+    if (unlikely (*data_out == NULL)) {
+	status = _cairo_output_stream_destroy (abstract_stream);
+	assert (status == CAIRO_STATUS_SUCCESS);
+	return _cairo_error (CAIRO_STATUS_NO_MEMORY);
+    }
+    memcpy (*data_out, _cairo_array_index (&stream->array, 0), *length_out);
+
+    return _cairo_output_stream_destroy (abstract_stream);
 }
 
 void
@@ -689,7 +765,7 @@ _cairo_memory_stream_copy (cairo_output_stream_t *base,
 	return;
     }
 
-    _cairo_output_stream_write (dest, 
+    _cairo_output_stream_write (dest,
 				_cairo_array_index (&stream->array, 0),
 				_cairo_array_num_elements (&stream->array));
 }
@@ -714,16 +790,13 @@ _cairo_null_stream_create (void)
 {
     cairo_output_stream_t *stream;
 
-    //+EAWebKitChange
-    //11/10/2011
-    stream = cairo_malloc (sizeof *stream);
-    //-EAWebKitChange
-    if (stream == NULL) {
+    stream = malloc (sizeof *stream);
+    if (unlikely (stream == NULL)) {
 	_cairo_error_throw (CAIRO_STATUS_NO_MEMORY);
 	return (cairo_output_stream_t *) &_cairo_output_stream_nil;
     }
 
-    _cairo_output_stream_init (stream, null_write, NULL);
+    _cairo_output_stream_init (stream, null_write, NULL, NULL);
 
     return stream;
 }

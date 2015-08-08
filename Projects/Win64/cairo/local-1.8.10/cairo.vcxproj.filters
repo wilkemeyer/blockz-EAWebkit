@@ -69,9 +69,6 @@
     <ClInclude Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-malloc-private.h">
       <Filter>source</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-meta-surface-private.h">
-      <Filter>source</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-mutex-impl-private.h">
       <Filter>source</Filter>
     </ClInclude>
@@ -111,9 +108,6 @@
     <ClInclude Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-scaled-font-private.h">
       <Filter>source</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-skiplist-private.h">
-      <Filter>source</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-surface-fallback-private.h">
       <Filter>source</Filter>
     </ClInclude>
@@ -130,6 +124,21 @@
       <Filter>source</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-wideint-type-private.h">
+      <Filter>source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-compositor-private.h">
+      <Filter>source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-image-surface-inline.h">
+      <Filter>source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-image-surface-private.h">
+      <Filter>source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-recording-surface-inline.h">
+      <Filter>source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-recording-surface-private.h">
       <Filter>source</Filter>
     </ClInclude>
   </ItemGroup>
@@ -203,9 +212,6 @@
     <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-matrix.c">
       <Filter>source</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-meta-surface.c">
-      <Filter>source</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-misc.c">
       <Filter>source</Filter>
     </ClCompile>
@@ -254,9 +260,6 @@
     <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-scaled-font.c">
       <Filter>source</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-skiplist.c">
-      <Filter>source</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-slope.c">
       <Filter>source</Filter>
     </ClCompile>
@@ -272,9 +275,6 @@
     <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-surface-fallback.c">
       <Filter>source</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-system.c">
-      <Filter>source</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-traps.c">
       <Filter>source</Filter>
     </ClCompile>
@@ -288,6 +288,177 @@
       <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-wideint.c">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-compositor.c">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-toy-font-face.c">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-default-context.c">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-image-compositor.c">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-base64-stream.c">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-bentley-ottmann-rectangular.c">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-bentley-ottmann-rectilinear.c">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-botor-scan-converter.c">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-boxes.c">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-boxes-intersect.c">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-cff-subset.c">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-clip-boxes.c">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-clip-polygon.c">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-clip-region.c">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-clip-surface.c">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-clip-tor-scan-converter.c">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-composite-rectangles.c">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-contour.c">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-damage.c">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-error.c">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-fallback-compositor.c">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-image-info.c">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-image-source.c">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-line.c">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-mask-compositor.c">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-mempool.c">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-mesh-pattern-rasterizer.c">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-mono-scan-converter.c">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-observer.c">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-path-in-fill.c">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-path-stroke-boxes.c">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-path-stroke-polygon.c">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-path-stroke-traps.c">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-path-stroke-tristrip.c">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-polygon-intersect.c">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-polygon-reduce.c">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-raster-source-pattern.c">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-rectangular-scan-converter.c">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-rtree.c">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-scaled-font-subsets.c">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-shape-mask-compositor.c">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-spans.c">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-spans-compositor.c">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-stroke-dash.c">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-surface-clipper.c">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-surface-observer.c">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-surface-offset.c">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-surface-snapshot.c">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-surface-subsurface.c">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-surface-wrapper.c">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-recording-surface.c">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-device.c">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-tor22-scan-converter.c">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-tor-scan-converter.c">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-traps-compositor.c">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-no-compositor.c">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\cairo\local-1.8.10\source\cairo-tristrip.c">
       <Filter>source</Filter>
     </ClCompile>
   </ItemGroup>
