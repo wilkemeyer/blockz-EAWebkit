@@ -39,7 +39,7 @@
   <ItemDefinitionGroup Condition=" '$(Configuration)|$(Platform)' == 'pc-vc-dev-debug|Win32' ">
     <Midl />
     <ClCompile>
-      <AdditionalIncludeDirectories>..\..\..\..\EAWebKitSupportPackages\FreeTypeEAWebKit\local-2.6\freetype-2.6\include\freetype;$(VSInstallDir)\VC\ATLMFC\INCLUDE;$(VSInstallDir)\VC\INCLUDE;$(WindowsSDKDir)\include;$(VSInstallDir)\SDK\v2.0\include;$(VSInstallDir)\INCLUDE</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\..\EAWebKitSupportPackages\FreeTypeEAWebKit\local-2.6\freetype-2.6\include\freetype;..\..\..\..\EAWebKitSupportPackages\zlibEAWebKit\local-1.2.5-7-01\install;..\..\..\..\EAWebKitSupportPackages\zlibEAWebKit\local-1.2.5-7-01\include;$(VSInstallDir)\VC\ATLMFC\INCLUDE;$(VSInstallDir)\VC\INCLUDE;$(WindowsSDKDir)\include;$(VSInstallDir)\SDK\v2.0\include;$(VSInstallDir)\INCLUDE</AdditionalIncludeDirectories>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <BufferSecurityCheck>FALSE</BufferSecurityCheck>
       <CompileAs>Default</CompileAs>
@@ -90,7 +90,7 @@
   <ItemDefinitionGroup Condition=" '$(Configuration)|$(Platform)' == 'pc-vc-dev-opt|Win32' ">
     <Midl />
     <ClCompile>
-      <AdditionalIncludeDirectories>..\..\..\..\EAWebKitSupportPackages\FreeTypeEAWebKit\local-2.6\freetype-2.6\include\freetype;$(VSInstallDir)\VC\ATLMFC\INCLUDE;$(VSInstallDir)\VC\INCLUDE;$(WindowsSDKDir)\include;$(VSInstallDir)\SDK\v2.0\include;$(VSInstallDir)\INCLUDE</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\..\EAWebKitSupportPackages\FreeTypeEAWebKit\local-2.6\freetype-2.6\include\freetype;..\..\..\..\EAWebKitSupportPackages\zlibEAWebKit\local-1.2.5-7-01\install;..\..\..\..\EAWebKitSupportPackages\zlibEAWebKit\local-1.2.5-7-01\include;$(VSInstallDir)\VC\ATLMFC\INCLUDE;$(VSInstallDir)\VC\INCLUDE;$(WindowsSDKDir)\include;$(VSInstallDir)\SDK\v2.0\include;$(VSInstallDir)\INCLUDE</AdditionalIncludeDirectories>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
       <BufferSecurityCheck>FALSE</BufferSecurityCheck>
       <CompileAs>Default</CompileAs>
