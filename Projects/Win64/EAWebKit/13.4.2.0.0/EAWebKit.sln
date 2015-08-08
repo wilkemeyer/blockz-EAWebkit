@@ -1,5 +1,5 @@
 Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2010
+# Visual Studio 2013
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "EAWebKit", ".\EAWebKit.vcxproj", "{3486DF90-8F24-6A9B-FF72-3B20A0C510C4}"
 	ProjectSection(ProjectDependencies) = postProject
 		{4A3E9D7F-6F2E-E7F5-8CCA-F346214AD919} = {4A3E9D7F-6F2E-E7F5-8CCA-F346214AD919}
