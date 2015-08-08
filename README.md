@@ -6,7 +6,7 @@ See: http://gpl.ea.com
 
 ### Changelog of this Fork
 - Applied Modifications made in 13.4.2.0 
-- Disabled Default Filesystem Provider (you'll have to register your own via appsystems @ EAWebKitLib::Init() ..,\
+- Disabled Default Filesystem Provider (you'll have to register your own via appsystems @ EAWebKitLib::Init() ..,
   see FileSystemDefault @ EAWebKitFileSystem.cpp for example-code)
 - Updated Bundled 3rd Party libraries:
   - Updated Bundled libpng (v1.6.18)
@@ -15,18 +15,16 @@ See: http://gpl.ea.com
   - Updated Bundled libjpeg (v9a)
   - Updated Bundled FreeType (v2.6)
   - Updated Bundled Pixman (v0.32.6)
-  - Updated Bundled cairo (v1.14.2)\
-  **Note**: All libs are patched to use EAWebKit's memory allocation routines (the old-bundled-libs were also patched)
-
+  - Updated Bundled cairo (v1.14.2)
+  -  **Note**: All libs are patched to use EAWebKit's memory allocation routines (the old-bundled-libs were also patched)
  - Changed file-naming of the result libraries:
-   | Platform | Binary Name |
-   |---|---|
-   | Windows 32 Bit | EAWebKit.dll |
-   | Windows 32 Bit (Debug) | EAWebKitd.dll |
-   | Windows 64 Bit | EAWebKit64.dll |
-   | Windows 64 Bit (Debug) | EAWebKit64d.dll |
-  
-**Note (PS4, Xbox One)** \
+   - Windows 32Bit [Debug]    EAWebKitd.dll
+   - Windows 32Bit            EAWebKit.dll
+   - Windows 64Bit [Debug]    EAWebKit64d.dll
+   - Windows 64Bit            EAWebKit64.dll
+   - **Note**: The naming of all additional files, produced by compiling the project (pdb, lib) are also named by the naming-scheme above)
+
+##### Note (PS4, Xbox One)
 The Projects & Solutions for Xbox-One and PS4 haven't changed, this may cause PS4 && XBONE are'nt supported at the moment.
 
 ### Usage
