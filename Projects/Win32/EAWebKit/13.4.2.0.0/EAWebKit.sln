@@ -31,7 +31,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "EASTLEAWebKit", ".\..\..\EA
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "EATextEAWebKit", ".\..\..\EATextEAWebKit\local-1.09.01\EATextEAWebKit.vcxproj", "{1A31188D-0E51-00B9-8D5B-017215BB9F76}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FreeTypeEAWebKit", ".\..\..\FreeTypeEAWebKit\local-2.4.8.02-01\FreeTypeEAWebKit.vcxproj", "{2B72415D-9DAD-0B07-6A83-FC7612921224}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FreeTypeEAWebKit", ".\..\..\FreeTypeEAWebKit\local-2.6\FreeTypeEAWebKit.vcxproj", "{2B72415D-9DAD-0B07-6A83-FC7612921224}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "JavaScriptCore", ".\..\..\JavaScriptCore\local\JavaScriptCore.vcxproj", "{545B2B54-2E05-D685-49DA-280D6D6A90D1}"
 EndProject
