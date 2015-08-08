@@ -19,7 +19,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "EAWebKit", ".\EAWebKit.vcxp
 		{03994ABE-57B1-4D7C-896F-62AEE8658914} = {03994ABE-57B1-4D7C-896F-62AEE8658914}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cairo", ".\..\..\cairo\local-1.8.10\cairo.vcxproj", "{4A3E9D7F-6F2E-E7F5-8CCA-F346214AD919}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cairo", ".\..\..\cairo\local-1.14.2\cairo.vcxproj", "{4A3E9D7F-6F2E-E7F5-8CCA-F346214AD919}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "dirtysockEAWebKit", ".\..\..\DirtySDKEAWebKit\local\dirtysockEAWebKit.vcxproj", "{70A7E147-26B6-CFEF-F3E0-8DD9725246EA}"
 EndProject
