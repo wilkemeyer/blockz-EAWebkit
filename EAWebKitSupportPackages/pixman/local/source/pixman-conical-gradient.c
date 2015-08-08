@@ -1,9 +1,8 @@
 /*
- * Copyright © 2000 SuSE, Inc.
- * Copyright © 2007 Red Hat, Inc.
- * Copyright © 2000 Keith Packard, member of The XFree86 Project, Inc.
+ * Copyright Â© 2000 SuSE, Inc.
+ * Copyright Â© 2007 Red Hat, Inc.
+ * Copyright Â© 2000 Keith Packard, member of The XFree86 Project, Inc.
  *             2005 Lars Knoll & Zack Rusin, Trolltech
- * Copyright © 2011 Electronic Arts, Inc.
  *
  * Permission to use, copy, modify, distribute, and sell this software and its
  * documentation for any purpose is hereby granted without fee, provided that
@@ -166,25 +165,23 @@ conical_get_scanline_wide (pixman_iter_t *iter, const uint32_t *mask)
 {
     uint32_t *buffer = conical_get_scanline_narrow (iter, NULL);
 
-    pixman_expand ((uint64_t *)buffer, buffer, PIXMAN_a8r8g8b8, iter->width);
+    pixman_expand_to_float (
+	(argb_t *)buffer, buffer, PIXMAN_a8r8g8b8, iter->width);
 
     return buffer;
 }
 
 void
-_pixman_conical_gradient_iter_init (pixman_image_t *image,
-				    pixman_iter_t *iter,
-				    int x, int y, int width, int height,
-				    uint8_t *buffer, iter_flags_t flags)
+_pixman_conical_gradient_iter_init (pixman_image_t *image, pixman_iter_t *iter)
 {
-    if (flags & ITER_NARROW)
+    if (iter->iter_flags & ITER_NARROW)
 	iter->get_scanline = conical_get_scanline_narrow;
     else
 	iter->get_scanline = conical_get_scanline_wide;
 }
 
 PIXMAN_EXPORT pixman_image_t *
-pixman_image_create_conical_gradient (pixman_point_fixed_t *        center,
+pixman_image_create_conical_gradient (const pixman_point_fixed_t *  center,
                                       pixman_fixed_t                angle,
                                       const pixman_gradient_stop_t *stops,
                                       int                           n_stops)

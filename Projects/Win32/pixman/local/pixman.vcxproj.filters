@@ -24,9 +24,6 @@
     <ClInclude Include="..\..\..\..\EAWebKitSupportPackages\pixman\local\include\pixman-combine32.h">
       <Filter>include</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\..\EAWebKitSupportPackages\pixman\local\include\pixman-combine64.h">
-      <Filter>include</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\..\EAWebKitSupportPackages\pixman\local\include\pixman-compiler.h">
       <Filter>include</Filter>
     </ClInclude>
@@ -43,6 +40,9 @@
       <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\EAWebKitSupportPackages\pixman\local\include\pixman-version.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\..\EAWebKitSupportPackages\pixman\local\include\pixman-inlines.h">
       <Filter>include</Filter>
     </ClInclude>
   </ItemGroup>
@@ -62,13 +62,7 @@
     <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\pixman\local\source\pixman-combine32.c">
       <Filter>source</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\pixman\local\source\pixman-combine64.c">
-      <Filter>source</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\pixman\local\source\pixman-conical-gradient.c">
-      <Filter>source</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\pixman\local\source\pixman-cpu.c">
       <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\pixman\local\source\pixman-edge.c">
@@ -110,9 +104,6 @@
     <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\pixman\local\source\pixman-solid-fill.c">
       <Filter>source</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\pixman\local\source\pixman-sse2.c">
-      <Filter>source</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\pixman\local\source\pixman-timer.c">
       <Filter>source</Filter>
     </ClCompile>
@@ -120,6 +111,39 @@
       <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\pixman\local\source\pixman-utils.c">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\pixman\local\source\pixman-sse2.c">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\pixman\local\source\pixman-arm.c">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\pixman\local\source\pixman-combine-float.c">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\pixman\local\source\pixman-filter.c">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\pixman\local\source\pixman-glyph.c">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\pixman\local\source\pixman-mips.c">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\pixman\local\source\pixman-mmx.c">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\pixman\local\source\pixman-noop.c">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\pixman\local\source\pixman-ppc.c">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\pixman\local\source\pixman-ssse3.c">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\pixman\local\source\pixman-x86.c">
       <Filter>source</Filter>
     </ClCompile>
   </ItemGroup>

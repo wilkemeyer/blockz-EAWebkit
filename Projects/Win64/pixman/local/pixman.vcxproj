@@ -54,7 +54,7 @@
       <MultiProcessorCompilation>TRUE</MultiProcessorCompilation>
       <Optimization>Disabled</Optimization>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <PreprocessorDefinitions>_CHAR16T;_CRT_NONSTDC_NO_DEPRECATE;_CRT_SECURE_NO_DEPRECATE;_CRT_SECURE_NO_WARNINGS;_DEBUG;_HAS_CPP0X=0;_HAS_EXCEPTIONS=0;_SECURE_SCL=1;_WIN32_IE=0x0601;_WIN32_WINNT=0x0601;_WINDOWS;EA_DEBUG;PACKAGE_BUGREPORT=;PACKAGE_VERSION=;PACKAGE=pixman;PIXMAN_NO_TLS;WIN32;WINVER=0x0601</PreprocessorDefinitions>
+      <PreprocessorDefinitions>USE_SSE2;USE_SSSE3;_CHAR16T;_CRT_NONSTDC_NO_DEPRECATE;_CRT_SECURE_NO_DEPRECATE;_CRT_SECURE_NO_WARNINGS;_DEBUG;_HAS_CPP0X=0;_HAS_EXCEPTIONS=0;_SECURE_SCL=1;_WIN32_IE=0x0601;_WIN32_WINNT=0x0601;_WINDOWS;EA_DEBUG;PACKAGE_BUGREPORT=;PACKAGE_VERSION=;PACKAGE=pixman;PIXMAN_NO_TLS;WIN32;WINVER=0x0601</PreprocessorDefinitions>
       <ProcessorNumber>8</ProcessorNumber>
       <ProgramDataBaseFileName>pc64-vc-dev-debug\lib\pixman.pdb</ProgramDataBaseFileName>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -106,7 +106,7 @@
       <MultiProcessorCompilation>TRUE</MultiProcessorCompilation>
       <Optimization>MaxSpeed</Optimization>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <PreprocessorDefinitions>_CHAR16T;_CRT_NONSTDC_NO_DEPRECATE;_CRT_SECURE_NO_DEPRECATE;_CRT_SECURE_NO_WARNINGS;_HAS_CPP0X=0;_HAS_EXCEPTIONS=0;_SECURE_SCL=0;_WIN32_IE=0x0601;_WIN32_WINNT=0x0601;_WINDOWS;NDEBUG;PACKAGE_BUGREPORT=;PACKAGE_VERSION=;PACKAGE=pixman;PIXMAN_NO_TLS;USE_SSE2;WIN32;WINVER=0x0601</PreprocessorDefinitions>
+      <PreprocessorDefinitions>USE_SSE2;USE_SSSE3;_CHAR16T;_CRT_NONSTDC_NO_DEPRECATE;_CRT_SECURE_NO_DEPRECATE;_CRT_SECURE_NO_WARNINGS;_HAS_CPP0X=0;_HAS_EXCEPTIONS=0;_SECURE_SCL=0;_WIN32_IE=0x0601;_WIN32_WINNT=0x0601;_WINDOWS;NDEBUG;PACKAGE_BUGREPORT=;PACKAGE_VERSION=;PACKAGE=pixman;PIXMAN_NO_TLS;USE_SSE2;WIN32;WINVER=0x0601</PreprocessorDefinitions>
       <ProcessorNumber>8</ProcessorNumber>
       <ProgramDataBaseFileName>pc64-vc-dev-opt\lib\pixman.pdb</ProgramDataBaseFileName>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
@@ -137,26 +137,35 @@
     <ExcludePath>$(ExcludePath)</ExcludePath>
   </PropertyGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\..\..\EAWebKitSupportPackages\pixman\local\include\pixman-inlines.h" />
     <ClInclude Include="..\..\..\..\EAWebKitSupportPackages\pixman\local\include\pixman.h" />
     <ClInclude Include="..\..\..\..\EAWebKitSupportPackages\pixman\local\include\pixman-accessor.h" />
     <ClInclude Include="..\..\..\..\EAWebKitSupportPackages\pixman\local\include\pixman-arm-common.h" />
     <ClInclude Include="..\..\..\..\EAWebKitSupportPackages\pixman\local\include\pixman-arm-neon-asm.h" />
     <ClInclude Include="..\..\..\..\EAWebKitSupportPackages\pixman\local\include\pixman-combine32.h" />
-    <ClInclude Include="..\..\..\..\EAWebKitSupportPackages\pixman\local\include\pixman-combine64.h" />
     <ClInclude Include="..\..\..\..\EAWebKitSupportPackages\pixman\local\include\pixman-compiler.h" />
     <ClInclude Include="..\..\..\..\EAWebKitSupportPackages\pixman\local\include\pixman-edge-imp.h" />
     <ClInclude Include="..\..\..\..\EAWebKitSupportPackages\pixman\local\include\pixman-fast-path.h" />
     <ClInclude Include="..\..\..\..\EAWebKitSupportPackages\pixman\local\include\pixman-malloc.h" />
     <ClInclude Include="..\..\..\..\EAWebKitSupportPackages\pixman\local\include\pixman-private.h" />
     <ClInclude Include="..\..\..\..\EAWebKitSupportPackages\pixman\local\include\pixman-version.h" />
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\pixman\local\source\pixman-arm.c" />
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\pixman\local\source\pixman-combine-float.c" />
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\pixman\local\source\pixman-filter.c" />
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\pixman\local\source\pixman-glyph.c" />
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\pixman\local\source\pixman-mips.c" />
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\pixman\local\source\pixman-mmx.c" />
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\pixman\local\source\pixman-noop.c" />
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\pixman\local\source\pixman-ppc.c" />
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\pixman\local\source\pixman-sse2.c" />
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\pixman\local\source\pixman-ssse3.c" />
+    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\pixman\local\source\pixman-x86.c" />
     <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\pixman\local\source\pixman.c" />
     <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\pixman\local\source\pixman-access.c" />
     <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\pixman\local\source\pixman-access-accessors.c" />
     <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\pixman\local\source\pixman-bits-image.c" />
     <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\pixman\local\source\pixman-combine32.c" />
-    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\pixman\local\source\pixman-combine64.c" />
     <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\pixman\local\source\pixman-conical-gradient.c" />
-    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\pixman\local\source\pixman-cpu.c" />
     <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\pixman\local\source\pixman-edge.c" />
     <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\pixman\local\source\pixman-edge-accessors.c" />
     <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\pixman\local\source\pixman-fast-path.c" />
@@ -170,9 +179,6 @@
     <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\pixman\local\source\pixman-region16.c" />
     <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\pixman\local\source\pixman-region32.c" />
     <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\pixman\local\source\pixman-solid-fill.c" />
-    <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\pixman\local\source\pixman-sse2.c">
-      <ExcludedFromBuild Condition=" '$(Configuration)|$(Platform)' == 'pc64-vc-dev-debug|x64' ">TRUE</ExcludedFromBuild>
-    </ClCompile>
     <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\pixman\local\source\pixman-timer.c" />
     <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\pixman\local\source\pixman-trap.c" />
     <ClCompile Include="..\..\..\..\EAWebKitSupportPackages\pixman\local\source\pixman-utils.c" />
