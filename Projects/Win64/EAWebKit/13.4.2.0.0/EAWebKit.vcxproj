@@ -71,19 +71,19 @@
       <AdditionalOptions>-ignore:4089 </AdditionalOptions>
       <GenerateDebugInformation>TRUE</GenerateDebugInformation>
       <GenerateManifest>true</GenerateManifest>
-      <ImportLibrary>pc64-vc-dev-debug\lib\EAWebKitd.lib</ImportLibrary>
+      <ImportLibrary>pc64-vc-dev-debug\lib\EAWebKit64d.lib</ImportLibrary>
       <LinkDLL>true</LinkDLL>
       <LinkIncremental>false</LinkIncremental>
-      <ManifestFile>pc64-vc-dev-debug\build\EAWebKit\EAWebKitd.dll.intermediate.manifest</ManifestFile>
-      <ModuleDefinitionFile>..\..\..\..\EAWebkit_Windows.def</ModuleDefinitionFile>
-      <OutputFile>pc64-vc-dev-debug\bin\EAWebKitd.dll</OutputFile>
-      <ProgramDatabaseFile>pc64-vc-dev-debug\bin\EAWebKitd.pdb</ProgramDatabaseFile>
+      <ManifestFile>pc64-vc-dev-debug\build\EAWebKit\EAWebKit64d.dll.intermediate.manifest</ManifestFile>
+      <ModuleDefinitionFile>..\..\..\..\EAWebkit_Windows64_Debug.def</ModuleDefinitionFile>
+      <OutputFile>pc64-vc-dev-debug\bin\EAWebKit64d.dll</OutputFile>
+      <ProgramDatabaseFile>pc64-vc-dev-debug\bin\EAWebKit64d.pdb</ProgramDatabaseFile>
       <SubSystem>Console</SubSystem>
       <SuppressStartupBanner>TRUE</SuppressStartupBanner>
       <TargetMachine>MachineX64</TargetMachine>
     </Link>
     <Manifest>
-      <OutputManifestFile>pc64-vc-dev-debug\build\EAWebKit\EAWebKitd.dll.embed.manifest</OutputManifestFile>
+      <OutputManifestFile>pc64-vc-dev-debug\build\EAWebKit\EAWebKit64d.dll.embed.manifest</OutputManifestFile>
     </Manifest>
     <ManifestResourceCompile>
       <ManifestResourceFile>pc64-vc-dev-debug\build\EAWebKit\EAWebKitd.dll.embed.manifest.res</ManifestResourceFile>
@@ -100,7 +100,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'pc64-vc-dev-debug|x64' ">
     <OutDir>pc64-vc-dev-debug\bin\</OutDir>
     <IntDir>pc64-vc-dev-debug\build\EAWebKit\vstmp\</IntDir>
-    <TargetName>EAWebKitd</TargetName>
+    <TargetName>EAWebKit64d</TargetName>
     <TargetExt>.dll</TargetExt>
     <LinkIncremental>false</LinkIncremental>
     <GenerateManifest>true</GenerateManifest>
@@ -150,20 +150,20 @@
       <AdditionalOptions>-ignore:4089 </AdditionalOptions>
       <GenerateDebugInformation>TRUE</GenerateDebugInformation>
       <GenerateManifest>true</GenerateManifest>
-      <ImportLibrary>pc64-vc-dev-opt\lib\EAWebKit.lib</ImportLibrary>
+      <ImportLibrary>pc64-vc-dev-opt\lib\EAWebKit64.lib</ImportLibrary>
       <LinkDLL>true</LinkDLL>
       <LinkIncremental>false</LinkIncremental>
-      <ManifestFile>pc64-vc-dev-opt\build\EAWebKit\EAWebKit.dll.intermediate.manifest</ManifestFile>
-      <ModuleDefinitionFile>..\..\..\..\EAWebkit_Windows.def</ModuleDefinitionFile>
+      <ManifestFile>pc64-vc-dev-opt\build\EAWebKit\EAWebKit64.dll.intermediate.manifest</ManifestFile>
+      <ModuleDefinitionFile>..\..\..\..\EAWebkit_Windows64.def</ModuleDefinitionFile>
       <OptimizeReferences>true</OptimizeReferences>
-      <OutputFile>pc64-vc-dev-opt\bin\EAWebKit.dll</OutputFile>
-      <ProgramDatabaseFile>pc64-vc-dev-opt\bin\EAWebKit.pdb</ProgramDatabaseFile>
+      <OutputFile>pc64-vc-dev-opt\bin\EAWebKit64.dll</OutputFile>
+      <ProgramDatabaseFile>pc64-vc-dev-opt\bin\EAWebKit64.pdb</ProgramDatabaseFile>
       <SubSystem>Console</SubSystem>
       <SuppressStartupBanner>TRUE</SuppressStartupBanner>
       <TargetMachine>MachineX64</TargetMachine>
     </Link>
     <Manifest>
-      <OutputManifestFile>pc64-vc-dev-opt\build\EAWebKit\EAWebKit.dll.embed.manifest</OutputManifestFile>
+      <OutputManifestFile>pc64-vc-dev-opt\build\EAWebKit\EAWebKit64.dll.embed.manifest</OutputManifestFile>
     </Manifest>
     <ManifestResourceCompile>
       <ManifestResourceFile>pc64-vc-dev-opt\build\EAWebKit\EAWebKit.dll.embed.manifest.res</ManifestResourceFile>
@@ -180,7 +180,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'pc64-vc-dev-opt|x64' ">
     <OutDir>pc64-vc-dev-opt\bin\</OutDir>
     <IntDir>pc64-vc-dev-opt\build\EAWebKit\vstmp\</IntDir>
-    <TargetName>EAWebKit</TargetName>
+    <TargetName>EAWebKit64</TargetName>
     <TargetExt>.dll</TargetExt>
     <LinkIncremental>false</LinkIncremental>
     <GenerateManifest>true</GenerateManifest>

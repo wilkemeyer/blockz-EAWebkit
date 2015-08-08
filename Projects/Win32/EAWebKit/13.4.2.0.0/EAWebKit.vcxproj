@@ -76,7 +76,7 @@
       <LinkDLL>true</LinkDLL>
       <LinkIncremental>false</LinkIncremental>
       <ManifestFile>pc-vc-dev-debug\build\EAWebKit\EAWebKitd.dll.intermediate.manifest</ManifestFile>
-      <ModuleDefinitionFile>..\..\..\..\EAWebkit_Windows.def</ModuleDefinitionFile>
+      <ModuleDefinitionFile>..\..\..\..\EAWebkit_Windows_Debug.def</ModuleDefinitionFile>
       <OutputFile>pc-vc-dev-debug\bin\EAWebKitd.dll</OutputFile>
       <ProgramDatabaseFile>pc-vc-dev-debug\bin\EAWebKitd.pdb</ProgramDatabaseFile>
       <SubSystem>Console</SubSystem>
