@@ -107,9 +107,13 @@ typedef unsigned long  ulg;
 
 #if defined(MACOS) || defined(TARGET_OS_MAC)
 #  define OS_CODE  0x07
+#  if defined(__MWERKS__) && __dest_os != __be_os && __dest_os != __win32_os
+#    include <unix.h> /* for fdopen */
+#  else
 #    ifndef fdopen
 #      define fdopen(fd,mode) NULL /* No fdopen() */
 #    endif
+#  endif
 #endif
 
 #ifdef __50SERIES /* Prime/PRIMOS */

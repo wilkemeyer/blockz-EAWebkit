@@ -93,7 +93,7 @@
 #endif
 
 /* Some Mac compilers merge all .h files incorrectly: */
-#if defined(CS_UNDEFINED_STRING) || defined(applec) ||defined(THINK_C) ||defined(__SC__)
+#if defined(__MWERKS__) || defined(applec) ||defined(THINK_C) ||defined(__SC__)
 #  define NO_DUMMY_DECL
 #endif
 
